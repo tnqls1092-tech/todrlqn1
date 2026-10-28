@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2026학년도 2학기 학교생활기록부 점검 (조치상태 선택 지원)</title>
+  <title>2026학년도 2학기 학교생활기록부 점검 (영역별 필터링 지원)</title>
   <!-- PDF.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
@@ -66,7 +66,7 @@
       font-weight: 700;
     }
 
-    /* 메인 컨테이너 */
+    /* 메인 레이아웃 */
     .container {
       max-width: 1160px;
       margin: 24px auto 80px;
@@ -76,7 +76,7 @@
       gap: 16px;
     }
 
-    /* 상단 배너 */
+    /* 헤더 카드 */
     .header-card {
       background: linear-gradient(135deg, #2563eb, #1e3a8a);
       color: white;
@@ -128,7 +128,7 @@
       margin-top: 8px;
     }
 
-    /* 요약 알림창 */
+    /* 요약 안내 배너 */
     .alert-banner {
       background: #fffbeb;
       border: 1px solid #fcd34d;
@@ -180,7 +180,7 @@
     .val-danger { color: #dc2626; }
     .val-warning { color: #d97706; }
 
-    /* 점검 결과 테이블 */
+    /* 결과 테이블 */
     .content-box {
       background: white;
       border-radius: 12px;
@@ -224,7 +224,6 @@
     .td-name { width: 220px; font-weight: 600; color: #1e293b; }
     .td-status { width: 130px; text-align: center; }
 
-    /* 상태 뱃지 */
     .status-tag {
       display: inline-block;
       padding: 5px 12px;
@@ -235,7 +234,7 @@
     .status-ok { background: #ecfdf5; color: #059669; }
     .status-wait { background: #f1f5f9; color: #64748b; }
 
-    /* ★ 1번 요청: 사용자 선택 조치상태 드롭다운 스타일 */
+    /* 사용자 선택 드롭다운 */
     .status-select {
       width: 100%;
       padding: 6px 10px;
@@ -246,7 +245,6 @@
       outline: none;
       transition: all 0.2s;
     }
-    /* 드롭다운 상태별 색상 (수정 필요, 확인 필요, 수정 완료, 확인 완료) */
     .select-need-fix {
       background-color: #fef2f2;
       border: 1.5px solid #ef4444;
@@ -268,7 +266,7 @@
       color: #047857;
     }
 
-    /* 페이지 및 문맥 박스 */
+    /* 위치 및 문맥 박스 */
     .detected-box {
       margin-top: 8px;
       background: #fef2f2;
@@ -312,7 +310,7 @@
 
   <header class="navbar">
     <div class="logo">
-      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">조치상태 드롭다운 탑재</span>
+      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">영역별 예외 필터링 적용</span>
     </div>
   </header>
 
@@ -392,15 +390,15 @@
   </main>
 
   <script>
-    // 24개 검토 규칙 정의
+    // 24대 점검 규칙 정의 (영역별 스마트 필터링 탑재)
     const rules = [
       {
         id: 1,
         title: "사교육 유발 요인 기재 금지",
         req: "공인어학시험, 교내외 대회 성적/수상, 모의고사 성적, 논문, 도서출간, 해외활동, 부모지위, 장학금, 상호명(유튜브, 인스타그램, 챗 GPT, 엑셀 등) 기재 금지",
-        check: function(pages) {
+        check: function(filteredPages) {
           const targets = ['토익', 'TOEIC', '토플', 'TOEFL', '텝스', 'TEPS', 'KMO', '영재교육원', '국제기구', 'OECD', '올림픽', '유튜브', '인스타그램', '챗 GPT', 'ChatGPT', '엑셀', '한국전력공사', '통계청'];
-          const issues = findKeywordLocations(pages, targets, ['UN']);
+          const issues = findKeywordLocations(filteredPages, targets, ['UN']);
           if (issues.length > 0) {
             return { pass: false, issues: issues, msg: "금지 키워드 및 상호명이 검출되었습니다." };
           }
@@ -410,33 +408,24 @@
       {
         id: 2,
         title: "고교블라인드 위반 여부",
-        req: "학생 출신 고교를 유추할 수 있는 학교명, 재단명, 학교 고유 축제명, 학교 별칭 기재 금지",
-        check: function(pages) {
-          const issues = [];
-          pages.forEach(p => {
-            const lines = p.text.split(/[\n.]+/);
-            lines.forEach(line => {
-              if (line.includes("고등학교") && !line.includes("입학") && !line.includes("졸업") && !line.includes("전입")) {
-                const clean = line.trim();
-                if (clean.length > 5) {
-                  issues.push({ page: p.page, word: "고등학교", snippet: clean });
-                }
-              }
-            });
-          });
+        req: "(고교블라인드) 학생 출신 고교를 알 수 있는 내용(학교명, 재단명, 학교 축제명, 학교 별칭 등) 기재 금지 (※ 인적·학적사항 및 3.수상경력 내용은 검증 제외)",
+        check: function(filteredPages) {
+          // '대부' 단어 및 고교 추정명 전수 검사
+          const targets = ['대부', '고등학교'];
+          const issues = findKeywordLocations(filteredPages, targets);
           if (issues.length > 0) {
-            return { pass: false, issues: issues.slice(0, 3), msg: "본문 서술 내 고교명 추정 문구가 검출되었습니다." };
+            return { pass: false, issues: issues, msg: "고교 블라인드 위반 단어('대부' 등)가 서술 영역에서 검출되었습니다." };
           }
-          return { pass: true, msg: "고교명 및 재단명, 고유 명칭 미검출" };
+          return { pass: true, msg: "고교명 및 블라인드 위반 표현 미검출" };
         }
       },
       {
         id: 3,
         title: "동일 문구 및 1인칭 서술 금지",
         req: "동일 문구 복사 기재 및 '나는~', '내가~' 형태의 1인칭 주어 서술형 표현 배제",
-        check: function(pages) {
+        check: function(filteredPages) {
           const targets = ['나는 ', '내가 ', '저의 ', '나의 '];
-          const issues = findKeywordLocations(pages, targets);
+          const issues = findKeywordLocations(filteredPages, targets);
           if (issues.length > 0) {
             return { pass: false, issues: issues, msg: "1인칭 주어 표현이 검출되었습니다. (3인칭 관찰자 시점 서술 필요)" };
           }
@@ -447,9 +436,9 @@
         id: 4,
         title: "교사 미관찰 내용 기재 금지",
         req: "아르바이트, 교외 봉사활동 등 교사가 직접 관찰할 수 없는 내용 배제",
-        check: function(pages) {
+        check: function(filteredPages) {
           const targets = ['아르바이트', '알바', '교외 봉사'];
-          const issues = findKeywordLocations(pages, targets);
+          const issues = findKeywordLocations(filteredPages, targets);
           if (issues.length > 0) {
             return { pass: false, issues: issues, msg: "교사 미관찰 내용이 검출되었습니다." };
           }
@@ -465,12 +454,12 @@
       {
         id: 6,
         title: "특수문자·문단구분 기호 제한",
-        req: "기재 가능: ' , . () / 기재 불가: ·(가운데점), ‘ ’, “ ”, ?, !",
-        check: function(pages) {
+        req: "기재 가능: ' , . () / 기재 불가: ·(가운데점), ‘ ’, “ ”, ?, ! (※ 인적·학적사항 및 3.수상경력 내용은 검증 제외)",
+        check: function(filteredPages) {
           const targets = ['·', '‘', '’', '“', '”', '?', '!'];
-          const issues = findKeywordLocations(pages, targets);
+          const issues = findKeywordLocations(filteredPages, targets);
           if (issues.length > 0) {
-            return { pass: false, issues: issues.slice(0, 4), msg: "기재 지양 특수문자가 검출되었습니다." };
+            return { pass: false, issues: issues.slice(0, 4), msg: "기재 지양 특수문자가 서술 영역에서 검출되었습니다." };
           }
           return { pass: true, msg: "허용 부호 외 특수문자 미검출" };
         }
@@ -479,9 +468,9 @@
         id: 7,
         title: "서술형 문장 종결어미 형식",
         req: "서술형 항목 문장은 명사형 종결어미(~함, ~임 등)로 종결",
-        check: function(pages) {
+        check: function(filteredPages) {
           const targets = ['했다.', '입니다.', '하였다.', '있습니다.'];
-          const issues = findKeywordLocations(pages, targets);
+          const issues = findKeywordLocations(filteredPages, targets);
           if (issues.length > 0) {
             return { pass: false, issues: issues.slice(0, 3), msg: "비명사형 종결어미가 검출되었습니다." };
           }
@@ -509,14 +498,14 @@
       {
         id: 11,
         title: "‘대회’ 용어 기재 금지",
-        req: "학교생활기록부 전 영역에서 '대회' 단어 기재 절대 금지",
-        check: function(pages) {
+        req: "학교생활기록부 전 영역에서 '대회' 단어 기재 절대 금지 (※ 단, 3.수상경력 표의 내용은 검증 제외)",
+        check: function(filteredPages) {
           const targets = ['대회'];
-          const issues = findKeywordLocations(pages, targets);
+          const issues = findKeywordLocations(filteredPages, targets);
           if (issues.length > 0) {
-            return { pass: false, issues: issues, msg: "기재금지어 '대회' 단어가 검출되었습니다." };
+            return { pass: false, issues: issues, msg: "서술 영역에서 기재금지어 '대회' 단어가 검출되었습니다." };
           }
-          return { pass: true, msg: "'대회' 단어 미사용 (적합)" };
+          return { pass: true, msg: "서술 영역 내 '대회' 단어 미사용 (적합)" };
         }
       },
       {
@@ -583,9 +572,9 @@
         id: 22,
         title: "독서활동 '도서명(저자)' 형식",
         req: "ISBN 등재 도서 기준 '도서명(저자)' 형식 입력 준수",
-        check: function(pages) {
+        check: function(filteredPages) {
           const issues = [];
-          pages.forEach(p => {
+          filteredPages.forEach(p => {
             if (p.text.includes("읽음") && !p.text.includes("(") && !p.text.includes(")")) {
               issues.push({ page: p.page, word: "도서명", snippet: "도서명 뒤 저자 괄호 표기 누락 추정" });
             }
@@ -606,9 +595,9 @@
         id: 24,
         title: "학생의 부정적인 행동특성 기재",
         req: "단점 기재 시 변화와 개선 노력 병기 여부",
-        check: function(pages) {
+        check: function(filteredPages) {
           const targets = ['불성실', '폭력적', '지각이 잦음'];
-          const issues = findKeywordLocations(pages, targets);
+          const issues = findKeywordLocations(filteredPages, targets);
           if (issues.length > 0) {
             return { pass: false, issues: issues, msg: "극단적 부정 표현이 검출되었습니다." };
           }
@@ -616,6 +605,56 @@
         }
       }
     ];
+
+    // ★ 인적·학적사항 및 3.수상경력(표) 영역 자동 배제 정제 함수
+    function filterExcludedSections(pagesData) {
+      let isInsideAwardSection = false;
+
+      return pagesData.map(p => {
+        const lines = p.text.split('\n');
+        const validLines = [];
+
+        for (let line of lines) {
+          const trimmed = line.trim();
+
+          // 1) 인적·학적사항 영역 문구 필터링
+          if (
+            trimmed.includes("1. 인적사항") || 
+            trimmed.includes("2. 학적사항") ||
+            trimmed.includes("주민등록번호") ||
+            trimmed.includes("생년월일") ||
+            trimmed.includes("입학") ||
+            trimmed.includes("전입") ||
+            trimmed.includes("졸업대장")
+          ) {
+            continue; // 인적사항 라인 건너뛰기
+          }
+
+          // 2) 3. 수상경력 (표) 영역 감지 및 배제
+          if (trimmed.includes("3. 수상경력") || trimmed.includes("3.수상경력") || trimmed.includes("[수상경력]")) {
+            isInsideAwardSection = true;
+            continue;
+          }
+
+          // 다음 번호 항목(4. 자격증, 5. 출결 등)이 나오면 수상경력 영역 종료
+          if (isInsideAwardSection && (/^[4-9]\s*\./.test(trimmed) || trimmed.includes("4. 자격증") || trimmed.includes("4.자격증") || trimmed.includes("5. 출결상황"))) {
+            isInsideAwardSection = false;
+          }
+
+          // 수상경력 표 내부 행인 경우 건너뛰기
+          if (isInsideAwardSection) {
+            continue;
+          }
+
+          validLines.push(line);
+        }
+
+        return {
+          page: p.page,
+          text: validLines.join('\n')
+        };
+      });
+    }
 
     // 키워드 위치 탐색 헬퍼 함수
     function findKeywordLocations(pages, targets, strictWords = []) {
@@ -643,7 +682,7 @@
       return results.slice(0, 5);
     }
 
-    // 초기 테이블
+    // 초기 테이블 구성
     function initTable() {
       const tbody = document.getElementById("checklistBody");
       tbody.innerHTML = "";
@@ -662,7 +701,7 @@
       });
     }
 
-    // 파일 로드 핸들러
+    // 파일 업로드 핸들러
     async function handleFile(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -671,7 +710,7 @@
       document.getElementById("loadingText").style.display = "block";
       document.getElementById("fileMetaInfo").innerText = `분석 대상: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
 
-      const pagesData = [];
+      const rawPagesData = [];
 
       try {
         if (file.name.toLowerCase().endsWith('.pdf')) {
@@ -682,14 +721,17 @@
             const page = await pdf.getPage(pageNum);
             const textContent = await page.getTextContent();
             const pageText = textContent.items.map(item => item.str).join(' ');
-            pagesData.push({ page: pageNum, text: pageText });
+            rawPagesData.push({ page: pageNum, text: pageText });
           }
         } else {
           const text = await file.text();
-          pagesData.push({ page: 1, text: text });
+          rawPagesData.push({ page: 1, text: text });
         }
 
-        runInspection(pagesData, file.name);
+        // 인적·학적사항 및 수상경력(표) 영역 필터링 실행
+        const filteredPages = filterExcludedSections(rawPagesData);
+
+        runInspection(filteredPages, file.name);
 
       } catch (err) {
         alert("PDF 파일을 읽는 중 오류가 발생했습니다. 정상 파일인지 확인해 주세요.");
@@ -702,7 +744,6 @@
     // 드롭다운 상태 변경 이벤트 처리
     function handleStatusChange(selectElement) {
       const val = selectElement.value;
-      // 클래스 초기화 후 선택값에 따라 색상 클래스 추가
       selectElement.className = "status-select";
       if (val === "수정 필요") {
         selectElement.classList.add("select-need-fix");
@@ -716,7 +757,7 @@
     }
 
     // 24개 검사 실행 및 렌더링
-    function runInspection(pagesData, filename) {
+    function runInspection(filteredPages, filename) {
       const tbody = document.getElementById("checklistBody");
       tbody.innerHTML = "";
 
@@ -725,10 +766,9 @@
       let failCount = 0;
 
       rules.forEach(rule => {
-        const result = rule.check(pagesData);
+        const result = rule.check(filteredPages);
         if (result.pass) passCount++; else failCount++;
 
-        // 오류 문맥 박스 생성
         let issuesHtml = "";
         if (!result.pass && result.issues && result.issues.length > 0) {
           issuesHtml = `
@@ -749,7 +789,6 @@
           `;
         }
 
-        // ★ 우측 판정 영역: 적합이면 녹색 태그, 수정필요면 요청하신 드롭다운 메뉴로 생성!
         let statusColHtml = "";
         if (result.pass) {
           statusColHtml = `<span class="status-tag status-ok">적합</span>`;
@@ -782,13 +821,13 @@
         tbody.appendChild(tr);
       });
 
-      // 수치 갱신
+      // 요약 수치 갱신
       document.getElementById("statTotal").innerHTML = `${total}<span>개</span>`;
       document.getElementById("statPass").innerHTML = `${passCount}<span>개</span>`;
       document.getElementById("statFail").innerHTML = `${failCount}<span>건</span>`;
       document.getElementById("statPending").innerHTML = `0<span>건</span>`;
 
-      // 핵심 안내 문구
+      // 안내 문구 갱신
       const alertBadge = document.getElementById("alertBadge");
       const summaryText = document.getElementById("reportSummary");
 
@@ -808,7 +847,6 @@
       document.getElementById("uploadDesc").innerText = "다른 PDF 파일을 선택하면 새로운 검사를 즉시 시작합니다.";
     }
 
-    // 시작 시 테이블 초기화
     window.addEventListener("DOMContentLoaded", () => {
       initTable();
     });
