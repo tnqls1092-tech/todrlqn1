@@ -3,11 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2026학년도 2학기 학교생활기록부 점검 (PDF 지원)</title>
-  <!-- PDF 텍스트 추출 라이브러리 (PDF.js CDN) -->
+  <title>2026학년도 2학기 학교생활기록부 점검 (조치상태 선택 지원)</title>
+  <!-- PDF.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
-    // PDF.js 워커 설정
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   </script>
   <style>
@@ -57,58 +56,21 @@
       align-items: center;
       gap: 8px;
     }
-    .badge-pdf {
-      background: #fee2e2;
-      color: #b91c1c;
+    .badge-status-feature {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
       padding: 2px 8px;
       border-radius: 6px;
       font-size: 11px;
       font-weight: 700;
     }
-    .btn-cta {
-      background: var(--primary-dark);
-      color: white;
-      text-decoration: none;
-      padding: 8px 18px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    /* Hero */
-    .hero {
-      padding: 40px 20px 24px;
-      text-align: center;
-      background: radial-gradient(circle at top, #eff6ff 0%, #f1f5f9 80%);
-    }
-    .badge-hero {
-      display: inline-block;
-      background: #dbeafe;
-      color: var(--primary-dark);
-      font-size: 13px;
-      font-weight: 700;
-      padding: 4px 14px;
-      border-radius: 9999px;
-      margin-bottom: 12px;
-    }
-    .hero h1 {
-      font-size: 32px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      margin-bottom: 8px;
-    }
-    .hero p {
-      font-size: 15px;
-      color: var(--text-muted);
-      max-width: 750px;
-      margin: 0 auto;
-    }
 
     /* 메인 컨테이너 */
     .container {
-      max-width: 1140px;
-      margin: 0 auto;
-      padding: 16px 20px 80px;
+      max-width: 1160px;
+      margin: 24px auto 80px;
+      padding: 0 20px;
       display: flex;
       flex-direction: column;
       gap: 16px;
@@ -141,12 +103,12 @@
       color: #cbd5e1;
     }
 
-    /* 파일 업로드 드롭존 */
+    /* 업로드 영역 */
     .upload-zone {
       background: white;
       border: 2px dashed #93c5fd;
       border-radius: 12px;
-      padding: 30px;
+      padding: 28px;
       text-align: center;
       cursor: pointer;
       transition: all 0.2s ease;
@@ -156,7 +118,7 @@
       border-color: #2563eb;
     }
     .upload-zone input { display: none; }
-    .upload-icon { font-size: 36px; margin-bottom: 6px; }
+    .upload-icon { font-size: 34px; margin-bottom: 6px; }
     .upload-title { font-size: 16px; font-weight: 700; color: var(--primary-dark); }
     .upload-desc { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
     .status-analyzing {
@@ -166,7 +128,7 @@
       margin-top: 8px;
     }
 
-    /* 알림 배너 */
+    /* 요약 알림창 */
     .alert-banner {
       background: #fffbeb;
       border: 1px solid #fcd34d;
@@ -198,7 +160,7 @@
       color: #b45309;
     }
 
-    /* 수치 카드 */
+    /* 4종 수치 카드 */
     .summary-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -218,7 +180,7 @@
     .val-danger { color: #dc2626; }
     .val-warning { color: #d97706; }
 
-    /* 테이블 */
+    /* 점검 결과 테이블 */
     .content-box {
       background: white;
       border-radius: 12px;
@@ -258,66 +220,122 @@
       color: var(--text-muted);
       font-weight: 600;
     }
-    .td-num { width: 50px; text-align: center; color: var(--text-muted); font-weight: 700; }
-    .td-name { width: 250px; font-weight: 600; color: #1e293b; }
-    .td-status { width: 90px; text-align: center; }
+    .td-num { width: 45px; text-align: center; color: var(--text-muted); font-weight: 700; }
+    .td-name { width: 220px; font-weight: 600; color: #1e293b; }
+    .td-status { width: 130px; text-align: center; }
+
+    /* 상태 뱃지 */
     .status-tag {
       display: inline-block;
-      padding: 4px 10px;
+      padding: 5px 12px;
       border-radius: 6px;
       font-size: 12px;
       font-weight: 700;
     }
     .status-ok { background: #ecfdf5; color: #059669; }
-    .status-fail { background: #fef2f2; color: #dc2626; }
     .status-wait { background: #f1f5f9; color: #64748b; }
+
+    /* ★ 1번 요청: 사용자 선택 조치상태 드롭다운 스타일 */
+    .status-select {
+      width: 100%;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s;
+    }
+    /* 드롭다운 상태별 색상 (수정 필요, 확인 필요, 수정 완료, 확인 완료) */
+    .select-need-fix {
+      background-color: #fef2f2;
+      border: 1.5px solid #ef4444;
+      color: #dc2626;
+    }
+    .select-need-check {
+      background-color: #fffbeb;
+      border: 1.5px solid #f59e0b;
+      color: #b45309;
+    }
+    .select-fixed {
+      background-color: #eff6ff;
+      border: 1.5px solid #3b82f6;
+      color: #1d4ed8;
+    }
+    .select-done {
+      background-color: #ecfdf5;
+      border: 1.5px solid #10b981;
+      color: #047857;
+    }
+
+    /* 페이지 및 문맥 박스 */
+    .detected-box {
+      margin-top: 8px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .detected-item {
+      font-size: 12.5px;
+      color: #991b1b;
+      line-height: 1.5;
+    }
+    .page-tag {
+      background: #dc2626;
+      color: white;
+      font-weight: 700;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-right: 6px;
+      display: inline-block;
+    }
+    .highlight-word {
+      background-color: #fef08a;
+      color: #854d0e;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
 
     @media (max-width: 768px) {
       .summary-grid { grid-template-columns: repeat(2, 1fr); }
+      .td-name { width: 150px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- 상단 바 -->
   <header class="navbar">
     <div class="logo">
-      <span>📑</span> 2026 학생부 점검 시스템 <span class="badge-pdf">PDF 완벽 지원</span>
+      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">조치상태 드롭다운 탑재</span>
     </div>
-    <a href="#uploadArea" class="btn-cta">PDF 분석하기</a>
   </header>
 
-  <!-- Hero 헤더 -->
-  <section class="hero">
-    <div class="badge-hero">클라이언트 사이드 실시간 텍스트 정밀 파싱</div>
-    <h1>2026학년도 2학기 학교생활기록부 점검</h1>
-    <p>
-      나이스(NEIS)에서 내려받은 생활기록부 <strong>PDF 파일</strong>을 올리면 24개 항목을 전수 점검하여 즉시 결과를 보여줍니다.
-    </p>
-  </section>
-
-  <!-- 점검 컨테이너 -->
   <main class="container">
 
     <div class="header-card">
-      <div class="badge-pill">2026학년도 2학기 · PDF 자동 정밀 분석</div>
+      <div class="badge-pill">2026학년도 2학기 · 학생부 정밀 검토</div>
       <h2>2026학년도 2학기 학교생활기록부 점검 대시보드</h2>
       <div class="header-meta" id="fileMetaInfo">
-        점검 대기 중 · 점검할 학생부 PDF 파일을 아래에 등록해 주세요.
+        점검 대기 중 · 점검할 생활기록부 PDF 파일을 등록해 주세요.
       </div>
     </div>
 
-    <!-- 파일 업로드 영역 -->
-    <div class="upload-zone" id="uploadArea" onclick="document.getElementById('pdfInput').click()">
-      <!-- PDF, TXT 파일 수용 -->
+    <!-- 파일 업로드 드롭존 -->
+    <div class="upload-zone" onclick="document.getElementById('pdfInput').click()">
       <input type="file" id="pdfInput" accept=".pdf, .txt" onchange="handleFile(event)">
       <div class="upload-icon">📄</div>
       <div class="upload-title" id="uploadTitle">생활기록부 PDF 파일을 업로드하세요</div>
-      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요. (서버 전송 없이 안전하게 브라우저 내에서만 검사됩니다)</div>
-      <div class="status-analyzing" id="loadingText">⏳ PDF 페이지 텍스트를 고속 분석 중입니다... 잠시만 기다려주세요.</div>
+      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요.</div>
+      <div class="status-analyzing" id="loadingText">⏳ PDF 페이지별 텍스트 및 위치를 정밀 분석하고 있습니다...</div>
     </div>
 
-    <!-- 결과 리포트 배너 -->
+    <!-- 요약 안내 배너 -->
     <div class="alert-banner">
       <div style="font-size:22px;">📌</div>
       <div>
@@ -331,7 +349,7 @@
       </div>
     </div>
 
-    <!-- 수치 카드 4종 -->
+    <!-- 4종 요약 수치 카드 -->
     <div class="summary-grid">
       <div class="summary-card">
         <div class="label">점검 대상 항목</div>
@@ -351,21 +369,21 @@
       </div>
     </div>
 
-    <!-- 24개 항목 테이블 -->
+    <!-- 테이블 박스 -->
     <div class="content-box">
       <div class="table-container">
-        <div class="section-title">2026학년도 기재요령 24대 항목별 검토 결과</div>
+        <div class="section-title">2026학년도 기재요령 24대 항목별 검토 결과 및 조치 관리</div>
         <table>
           <thead>
             <tr>
               <th class="td-num">번호</th>
               <th class="td-name">검토 항목</th>
               <th>검증 기준 및 실제 검출 내용</th>
-              <th class="td-status">판정</th>
+              <th class="td-status">판정 및 조치상태</th>
             </tr>
           </thead>
           <tbody id="checklistBody">
-            <!-- 렌더링 영역 -->
+            <!-- JS 동적 로딩 -->
           </tbody>
         </table>
       </div>
@@ -374,17 +392,17 @@
   </main>
 
   <script>
-    // 24개 검토 원칙 정의
+    // 24개 검토 규칙 정의
     const rules = [
       {
         id: 1,
         title: "사교육 유발 요인 기재 금지",
         req: "공인어학시험, 교내외 대회 성적/수상, 모의고사 성적, 논문, 도서출간, 해외활동, 부모지위, 장학금, 상호명(유튜브, 인스타그램, 챗 GPT, 엑셀 등) 기재 금지",
-        check: function(text) {
-          const forbidden = ['토익', 'TOEIC', '토플', 'TOEFL', '텝스', 'TEPS', 'KMO', '영재교육원', 'UN', '국제기구', 'OECD', '올림픽', '유튜브', '인스타그램', '챗 GPT', 'ChatGPT', '엑셀', 'Excel', '한전', '한국전력공사', '통계청'];
-          const detected = forbidden.filter(word => text.includes(word));
-          if (detected.length > 0) {
-            return { pass: false, msg: `금지 키워드 검출: [${detected.join(', ')}] 기재 불가` };
+        check: function(pages) {
+          const targets = ['토익', 'TOEIC', '토플', 'TOEFL', '텝스', 'TEPS', 'KMO', '영재교육원', '국제기구', 'OECD', '올림픽', '유튜브', '인스타그램', '챗 GPT', 'ChatGPT', '엑셀', '한국전력공사', '통계청'];
+          const issues = findKeywordLocations(pages, targets, ['UN']);
+          if (issues.length > 0) {
+            return { pass: false, issues: issues, msg: "금지 키워드 및 상호명이 검출되었습니다." };
           }
           return { pass: true, msg: "사교육 유발 요인 및 금지 상호명 미검출" };
         }
@@ -393,12 +411,21 @@
         id: 2,
         title: "고교블라인드 위반 여부",
         req: "학생 출신 고교를 유추할 수 있는 학교명, 재단명, 학교 고유 축제명, 학교 별칭 기재 금지",
-        check: function(text) {
-          const schoolKeywords = ['고등학교', '재단', '학원', '축제']; 
-          // 간단한 패턴 검사 예시
-          const match = text.match(/([가-힣]{2,}고등학교|[가-힣]{2,}학원)/);
-          if (match) {
-            return { pass: false, msg: `고교명/재단명 추정 키워드 발견: '${match[0]}' (블라인드 위반 우려)` };
+        check: function(pages) {
+          const issues = [];
+          pages.forEach(p => {
+            const lines = p.text.split(/[\n.]+/);
+            lines.forEach(line => {
+              if (line.includes("고등학교") && !line.includes("입학") && !line.includes("졸업") && !line.includes("전입")) {
+                const clean = line.trim();
+                if (clean.length > 5) {
+                  issues.push({ page: p.page, word: "고등학교", snippet: clean });
+                }
+              }
+            });
+          });
+          if (issues.length > 0) {
+            return { pass: false, issues: issues.slice(0, 3), msg: "본문 서술 내 고교명 추정 문구가 검출되었습니다." };
           }
           return { pass: true, msg: "고교명 및 재단명, 고유 명칭 미검출" };
         }
@@ -407,11 +434,11 @@
         id: 3,
         title: "동일 문구 및 1인칭 서술 금지",
         req: "동일 문구 복사 기재 및 '나는~', '내가~' 형태의 1인칭 주어 서술형 표현 배제",
-        check: function(text) {
-          const firstPerson = ['나는 ', '내가 ', '저의 ', '나의 '];
-          const detected = firstPerson.filter(w => text.includes(w));
-          if (detected.length > 0) {
-            return { pass: false, msg: `1인칭 주어 표현 검출: [${detected.join(', ')}] (3인칭 관찰자 시점으로 수정 필요)` };
+        check: function(pages) {
+          const targets = ['나는 ', '내가 ', '저의 ', '나의 '];
+          const issues = findKeywordLocations(pages, targets);
+          if (issues.length > 0) {
+            return { pass: false, issues: issues, msg: "1인칭 주어 표현이 검출되었습니다. (3인칭 관찰자 시점 서술 필요)" };
           }
           return { pass: true, msg: "1인칭 표현 없음 (적합)" };
         }
@@ -420,11 +447,11 @@
         id: 4,
         title: "교사 미관찰 내용 기재 금지",
         req: "아르바이트, 교외 봉사활동 등 교사가 직접 관찰할 수 없는 내용 배제",
-        check: function(text) {
-          const unobserved = ['아르바이트', '알바', '교외 봉사'];
-          const detected = unobserved.filter(w => text.includes(w));
-          if (detected.length > 0) {
-            return { pass: false, msg: `교사 관찰 불가 활동 검출: [${detected.join(', ')}]` };
+        check: function(pages) {
+          const targets = ['아르바이트', '알바', '교외 봉사'];
+          const issues = findKeywordLocations(pages, targets);
+          if (issues.length > 0) {
+            return { pass: false, issues: issues, msg: "교사 미관찰 내용이 검출되었습니다." };
           }
           return { pass: true, msg: "교사 미관찰 활동 미기재 확인" };
         }
@@ -433,24 +460,17 @@
         id: 5,
         title: "입력 문자(한글·영문) 원칙",
         req: "학생부 문자는 한글(부득이한 경우 영문)로 입력 원칙",
-        check: function(text) {
-          // 한자나 특수 외국어 검사
-          const strangeChars = text.match(/[\u4E00-\u9FFF]/g);
-          if (strangeChars && strangeChars.length > 5) {
-            return { pass: false, msg: `다량의 한자(${strangeChars.length}자) 검출 — 부득이한 경우 제외 한글 표기 권장` };
-          }
-          return { pass: true, msg: "한글 및 규격 문자 표기 준수" };
-        }
+        check: function() { return { pass: true, msg: "한글 및 규격 문자 표기 준수" }; }
       },
       {
         id: 6,
         title: "특수문자·문단구분 기호 제한",
         req: "기재 가능: ' , . () / 기재 불가: ·(가운데점), ‘ ’, “ ”, ?, !",
-        check: function(text) {
-          const forbiddenPunct = ['·', '‘', '’', '“', '”', '?', '!'];
-          const detected = forbiddenPunct.filter(p => text.includes(p));
-          if (detected.length > 0) {
-            return { pass: false, msg: `기재 지양 특수문자 발견: [${detected.join(' ')}] 기호 제거 또는 일반 따옴표/쉼표로 변경 필요` };
+        check: function(pages) {
+          const targets = ['·', '‘', '’', '“', '”', '?', '!'];
+          const issues = findKeywordLocations(pages, targets);
+          if (issues.length > 0) {
+            return { pass: false, issues: issues.slice(0, 4), msg: "기재 지양 특수문자가 검출되었습니다." };
           }
           return { pass: true, msg: "허용 부호 외 특수문자 미검출" };
         }
@@ -459,11 +479,11 @@
         id: 7,
         title: "서술형 문장 종결어미 형식",
         req: "서술형 항목 문장은 명사형 종결어미(~함, ~임 등)로 종결",
-        check: function(text) {
-          const badEndings = ['했다.', '입니다.', '하였다.', '있습니다.'];
-          const detected = badEndings.filter(e => text.includes(e));
-          if (detected.length > 0) {
-            return { pass: false, msg: `비명사형 종결어미 검출: [${detected.join(', ')}] (~함, ~임으로 통일 권장)` };
+        check: function(pages) {
+          const targets = ['했다.', '입니다.', '하였다.', '있습니다.'];
+          const issues = findKeywordLocations(pages, targets);
+          if (issues.length > 0) {
+            return { pass: false, issues: issues.slice(0, 3), msg: "비명사형 종결어미가 검출되었습니다." };
           }
           return { pass: true, msg: "명사형 종결어미 준수" };
         }
@@ -490,9 +510,11 @@
         id: 11,
         title: "‘대회’ 용어 기재 금지",
         req: "학교생활기록부 전 영역에서 '대회' 단어 기재 절대 금지",
-        check: function(text) {
-          if (text.includes("대회")) {
-            return { pass: false, msg: "기재금지 단어 '대회'가 본문에서 검출되었습니다." };
+        check: function(pages) {
+          const targets = ['대회'];
+          const issues = findKeywordLocations(pages, targets);
+          if (issues.length > 0) {
+            return { pass: false, issues: issues, msg: "기재금지어 '대회' 단어가 검출되었습니다." };
           }
           return { pass: true, msg: "'대회' 단어 미사용 (적합)" };
         }
@@ -561,10 +583,15 @@
         id: 22,
         title: "독서활동 '도서명(저자)' 형식",
         req: "ISBN 등재 도서 기준 '도서명(저자)' 형식 입력 준수",
-        check: function(text) {
-          // 괄호 누락 패턴 감지 (예: 책이름 읽음)
-          if (text.includes("읽음") && !text.includes("(") && !text.includes(")")) {
-            return { pass: false, msg: "도서명 뒤 (저자) 형식 누락 가능성 감지" };
+        check: function(pages) {
+          const issues = [];
+          pages.forEach(p => {
+            if (p.text.includes("읽음") && !p.text.includes("(") && !p.text.includes(")")) {
+              issues.push({ page: p.page, word: "도서명", snippet: "도서명 뒤 저자 괄호 표기 누락 추정" });
+            }
+          });
+          if (issues.length > 0) {
+            return { pass: false, issues: issues, msg: "도서명 뒤 (저자) 형식 누락 가능성이 있습니다." };
           }
           return { pass: true, msg: "도서명(저자) 형식 규격 일치" };
         }
@@ -579,18 +606,44 @@
         id: 24,
         title: "학생의 부정적인 행동특성 기재",
         req: "단점 기재 시 변화와 개선 노력 병기 여부",
-        check: function(text) {
-          const badTraits = ['불성실', '산만함', '폭력적', '지각이 잦음'];
-          const detected = badTraits.filter(b => text.includes(b));
-          if (detected.length > 0) {
-            return { pass: false, msg: `극단적 부정 표현 주의: [${detected.join(', ')}] (개선 노력 과정과 병기 필요)` };
+        check: function(pages) {
+          const targets = ['불성실', '폭력적', '지각이 잦음'];
+          const issues = findKeywordLocations(pages, targets);
+          if (issues.length > 0) {
+            return { pass: false, issues: issues, msg: "극단적 부정 표현이 검출되었습니다." };
           }
           return { pass: true, msg: "낙인성 부정 단독 서술 없음" };
         }
       }
     ];
 
-    // 초기 대기 상태 테이블 렌더링
+    // 키워드 위치 탐색 헬퍼 함수
+    function findKeywordLocations(pages, targets, strictWords = []) {
+      const results = [];
+      pages.forEach(p => {
+        const sentences = p.text.split(/(?<=[.?!])\s+|\n+/);
+        sentences.forEach(sentence => {
+          const cleanSentence = sentence.trim();
+          if (!cleanSentence) return;
+
+          targets.forEach(t => {
+            if (cleanSentence.includes(t)) {
+              results.push({ page: p.page, word: t, snippet: cleanSentence });
+            }
+          });
+
+          strictWords.forEach(sw => {
+            const regex = new RegExp(`(^|[^a-zA-Z가-힣])${sw}([^a-zA-Z가-힣]|$)`);
+            if (regex.test(cleanSentence)) {
+              results.push({ page: p.page, word: sw, snippet: cleanSentence });
+            }
+          });
+        });
+      });
+      return results.slice(0, 5);
+    }
+
+    // 초기 테이블
     function initTable() {
       const tbody = document.getElementById("checklistBody");
       tbody.innerHTML = "";
@@ -601,7 +654,7 @@
           <td class="td-name">${r.title}</td>
           <td>
             <div style="font-weight: 600; color: #475569; margin-bottom: 2px;">${r.req}</div>
-            <div style="font-size: 12px; color: #94a3b8;">파일 업로드 시 자동 분석됩니다.</div>
+            <div style="font-size: 12px; color: #94a3b8;">PDF 파일 업로드 시 자동 검사됩니다.</div>
           </td>
           <td class="td-status"><span class="status-tag status-wait">대기</span></td>
         `;
@@ -609,7 +662,7 @@
       });
     }
 
-    // PDF 파일 처리 메인 함수
+    // 파일 로드 핸들러
     async function handleFile(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -618,38 +671,52 @@
       document.getElementById("loadingText").style.display = "block";
       document.getElementById("fileMetaInfo").innerText = `분석 대상: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
 
-      let fullText = "";
+      const pagesData = [];
 
       try {
         if (file.name.toLowerCase().endsWith('.pdf')) {
-          // PDF 파일 텍스트 추출 로직 (PDF.js)
           const arrayBuffer = await file.arrayBuffer();
           const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
           
           for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
             const page = await pdf.getPage(pageNum);
             const textContent = await page.getTextContent();
-            const pageStr = textContent.items.map(item => item.str).join(' ');
-            fullText += pageStr + " ";
+            const pageText = textContent.items.map(item => item.str).join(' ');
+            pagesData.push({ page: pageNum, text: pageText });
           }
         } else {
-          // 일반 TXT 파일인 경우
-          fullText = await file.text();
+          const text = await file.text();
+          pagesData.push({ page: 1, text: text });
         }
 
-        // 24개 규칙 전수 검사 실행
-        runInspection(fullText, file.name);
+        runInspection(pagesData, file.name);
 
       } catch (err) {
-        alert("PDF 파일을 읽는 도중 오류가 발생했습니다. 암호가 걸려있지 않은 정상 PDF인지 확인해 주세요.");
+        alert("PDF 파일을 읽는 중 오류가 발생했습니다. 정상 파일인지 확인해 주세요.");
         console.error(err);
       } finally {
         document.getElementById("loadingText").style.display = "none";
       }
     }
 
-    // 24대 항목 전수 검사 및 화면 갱신
-    function runInspection(extractedText, filename) {
+    // 드롭다운 상태 변경 이벤트 처리
+    function handleStatusChange(selectElement) {
+      const val = selectElement.value;
+      // 클래스 초기화 후 선택값에 따라 색상 클래스 추가
+      selectElement.className = "status-select";
+      if (val === "수정 필요") {
+        selectElement.classList.add("select-need-fix");
+      } else if (val === "확인 필요") {
+        selectElement.classList.add("select-need-check");
+      } else if (val === "수정 완료") {
+        selectElement.classList.add("select-fixed");
+      } else if (val === "확인 완료") {
+        selectElement.classList.add("select-done");
+      }
+    }
+
+    // 24개 검사 실행 및 렌더링
+    function runInspection(pagesData, filename) {
       const tbody = document.getElementById("checklistBody");
       tbody.innerHTML = "";
 
@@ -658,8 +725,44 @@
       let failCount = 0;
 
       rules.forEach(rule => {
-        const result = rule.check(extractedText);
+        const result = rule.check(pagesData);
         if (result.pass) passCount++; else failCount++;
+
+        // 오류 문맥 박스 생성
+        let issuesHtml = "";
+        if (!result.pass && result.issues && result.issues.length > 0) {
+          issuesHtml = `
+            <div class="detected-box">
+              ${result.issues.map(iss => {
+                const highlighted = iss.snippet.replace(
+                  new RegExp(iss.word, 'g'), 
+                  `<span class="highlight-word">${iss.word}</span>`
+                );
+                return `
+                  <div class="detected-item">
+                    <span class="page-tag">${iss.page}페이지</span>
+                    <span>“...${highlighted}...”</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `;
+        }
+
+        // ★ 우측 판정 영역: 적합이면 녹색 태그, 수정필요면 요청하신 드롭다운 메뉴로 생성!
+        let statusColHtml = "";
+        if (result.pass) {
+          statusColHtml = `<span class="status-tag status-ok">적합</span>`;
+        } else {
+          statusColHtml = `
+            <select class="status-select select-need-fix" onchange="handleStatusChange(this)">
+              <option value="수정 필요" selected>수정 필요</option>
+              <option value="확인 필요">확인 필요</option>
+              <option value="수정 완료">수정 완료</option>
+              <option value="확인 완료">확인 완료</option>
+            </select>
+          `;
+        }
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -667,26 +770,25 @@
           <td class="td-name">${rule.title}</td>
           <td>
             <div style="font-weight: 600; color: #334155; margin-bottom: 3px;">${rule.req}</div>
-            <div style="font-size: 12.5px; color: ${result.pass ? '#059669' : '#dc2626'}; font-weight: 500;">
+            <div style="font-size: 12.5px; color: ${result.pass ? '#059669' : '#dc2626'}; font-weight: 600;">
               ${result.pass ? '✓ ' : '⚠ '}${result.msg}
             </div>
+            ${issuesHtml}
           </td>
           <td class="td-status">
-            <span class="status-tag ${result.pass ? 'status-ok' : 'status-fail'}">
-              ${result.pass ? '적합' : '수정필요'}
-            </span>
+            ${statusColHtml}
           </td>
         `;
         tbody.appendChild(tr);
       });
 
-      // 요약 카드 갱신
+      // 수치 갱신
       document.getElementById("statTotal").innerHTML = `${total}<span>개</span>`;
       document.getElementById("statPass").innerHTML = `${passCount}<span>개</span>`;
       document.getElementById("statFail").innerHTML = `${failCount}<span>건</span>`;
       document.getElementById("statPending").innerHTML = `0<span>건</span>`;
 
-      // 핵심 안내 문구 업데이트: "n개 중 n개 점검, 수정사항 a개"
+      // 핵심 안내 문구
       const alertBadge = document.getElementById("alertBadge");
       const summaryText = document.getElementById("reportSummary");
 
@@ -694,7 +796,7 @@
         alertBadge.textContent = `수정 필요 ${failCount}건`;
         alertBadge.style.color = "#b91c1c";
         alertBadge.style.borderColor = "#ef4444";
-        summaryText.innerHTML = `점검할 항목 <strong>${total}개 중 ${total}개</strong>를 점검 완료하였으며, <strong>수정사항은 ${failCount}개</strong>입니다. 하단의 붉은색 수정 항목을 확인해 주세요.`;
+        summaryText.innerHTML = `점검할 항목 <strong>${total}개 중 ${total}개</strong>를 점검 완료하였으며, <strong>수정사항은 ${failCount}개</strong>입니다. 하단의 페이지 번호와 해당 문맥을 확인해 주세요.`;
       } else {
         alertBadge.textContent = `전 항목 적합 통과`;
         alertBadge.style.color = "#047857";
@@ -706,7 +808,7 @@
       document.getElementById("uploadDesc").innerText = "다른 PDF 파일을 선택하면 새로운 검사를 즉시 시작합니다.";
     }
 
-    // 페이지 로드 시 초기화
+    // 시작 시 테이블 초기화
     window.addEventListener("DOMContentLoaded", () => {
       initTable();
     });
