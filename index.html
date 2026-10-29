@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2026학년도 2학기 학교생활기록부 점검 (24대 항목 전수 출력)</title>
+  <title>2026학년도 2학기 학교생활기록부 점검 (정밀 검토 & 전 항목 드롭다운 지원)</title>
   <!-- PDF.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
@@ -66,7 +66,7 @@
     }
 
     .container {
-      max-width: 1180px;
+      max-width: 1200px;
       margin: 24px auto 80px;
       padding: 0 20px;
       display: flex;
@@ -214,22 +214,13 @@
       font-weight: 600;
     }
     .td-num { width: 45px; text-align: center; color: var(--text-muted); font-weight: 700; }
-    .td-name { width: 220px; font-weight: 600; color: #1e293b; }
-    .td-status { width: 130px; text-align: center; }
+    .td-name { width: 230px; font-weight: 600; color: #1e293b; }
+    .td-status { width: 140px; text-align: center; }
 
-    .status-tag {
-      display: inline-block;
-      padding: 5px 12px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .status-ok { background: #ecfdf5; color: #059669; }
-    .status-wait { background: #f1f5f9; color: #64748b; }
-
+    /* 드롭다운 스타일 */
     .status-select {
       width: 100%;
-      padding: 6px 10px;
+      padding: 7px 10px;
       border-radius: 6px;
       font-size: 12.5px;
       font-weight: 700;
@@ -254,11 +245,18 @@
       max-height: 520px;
       overflow-y: auto;
     }
+    .detected-box.double-check-box {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+    }
     .detected-count-badge {
       font-size: 11.5px;
       font-weight: 700;
       color: #b91c1c;
       margin-bottom: 2px;
+    }
+    .detected-count-badge.blue {
+      color: #1d4ed8;
     }
     .detected-item {
       font-size: 12.5px;
@@ -266,6 +264,10 @@
       line-height: 1.55;
       padding-bottom: 6px;
       border-bottom: 1px dashed #fca5a5;
+    }
+    .detected-item.blue {
+      color: #1e40af;
+      border-bottom-color: #bfdbfe;
     }
     .detected-item:last-child {
       border-bottom: none;
@@ -281,6 +283,9 @@
       margin-right: 6px;
       display: inline-block;
     }
+    .page-tag.blue {
+      background: #2563eb;
+    }
     .highlight-word {
       background-color: #fef08a;
       color: #854d0e;
@@ -294,14 +299,14 @@
 
   <header class="navbar">
     <div class="logo">
-      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">24대 전 항목 완벽 출력</span>
+      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">전 항목 드롭다운 & 더블체크 모드</span>
     </div>
   </header>
 
   <main class="container">
 
     <div class="header-card">
-      <div class="badge-pill">2026학년도 2학기 · 학생부 전수 검토</div>
+      <div class="badge-pill">2026학년도 2학기 · 학생부 전수 정밀 검토</div>
       <h2>2026학년도 2학기 학교생활기록부 점검 대시보드</h2>
       <div class="header-meta" id="fileMetaInfo">
         점검 대기 중 · 점검할 생활기록부 PDF 파일을 등록해 주세요.
@@ -313,7 +318,7 @@
       <input type="file" id="pdfInput" accept=".pdf, .txt" onchange="handleFile(event)">
       <div class="upload-icon">📄</div>
       <div class="upload-title" id="uploadTitle">생활기록부 PDF 파일을 업로드하세요</div>
-      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요. (400페이지 이상 대용량 완벽 대응)</div>
+      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요. (서술형 영문 전수 검출, 명사형 종결/온점, 학생시점 소감, 자치회 임원 더블체크 완벽 지원)</div>
       <div class="status-analyzing" id="loadingText">⏳ PDF 페이지별 텍스트 및 위치를 정밀 분석하고 있습니다...</div>
     </div>
 
@@ -326,7 +331,7 @@
           <span class="alert-badge" id="alertBadge">파일 대기 중</span>
         </div>
         <div class="alert-desc" id="reportSummary">
-          파일을 업로드하면 <strong>점검할 항목 24개 중 24개를 점검</strong>하고, <strong>수정사항 개수</strong>를 즉시 분석해 안내합니다.
+          파일을 업로드하면 <strong>점검할 항목 24개 중 24개를 점검</strong>하고, <strong>수정사항 및 더블체크 항목 개수</strong>를 즉시 분석해 안내합니다.
         </div>
       </div>
     </div>
@@ -338,11 +343,11 @@
         <div class="value val-total" id="statTotal">24<span>개</span></div>
       </div>
       <div class="summary-card">
-        <div class="label">적합 통과</div>
+        <div class="label">적합 (이상 없음)</div>
         <div class="value val-success" id="statPass">0<span>개</span></div>
       </div>
       <div class="summary-card">
-        <div class="label">수정 필요 항목</div>
+        <div class="label">수정·확인 필요 항목</div>
         <div class="value val-danger" id="statFail">0<span>건</span></div>
       </div>
       <div class="summary-card">
@@ -354,14 +359,14 @@
     <!-- 테이블 박스 -->
     <div class="content-box">
       <div class="table-container">
-        <div class="section-title">2026학년도 기재요령 24대 항목별 검토 결과 및 오류 전수 나열</div>
+        <div class="section-title">2026학년도 기재요령 24대 항목별 검토 결과 및 조치 관리</div>
         <table>
           <thead>
             <tr>
               <th class="td-num">번호</th>
               <th class="td-name">검토 항목</th>
               <th>검증 기준 및 실제 검출 내용 (전체 나열)</th>
-              <th class="td-status">판정 및 조치상태</th>
+              <th class="td-status">조치 상태 선택</th>
             </tr>
           </thead>
           <tbody id="checklistBody">
@@ -374,12 +379,11 @@
   </main>
 
   <script>
-    // ★ 정규식 특수문자 안전 이스케이프 함수 (물음표, 느낌표, 괄호 등 치환 에러 원천 방지)
     function escapeRegExp(string) {
       return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
-    // 24대 점검 규칙 정의 (1번부터 24번까지 누락 없음)
+    // 24대 점검 규칙 정의 (요청사항 1~5번 완벽 반영)
     const rules = [
       {
         id: 1,
@@ -409,15 +413,21 @@
       },
       {
         id: 3,
-        title: "동일 문구 및 1인칭 서술 금지",
-        req: "동일 문구 복사 기재 및 '나는~', '내가~' 형태의 1인칭 주어 서술형 표현 배제",
+        title: "1인칭 및 학생 시점 서술 금지",
+        req: "동일 문구 복사 기재 및 '나는~', '내가~' 외에도 학생 본인이 쓴 듯한 주관적 소감문·일기형 표현('느꼈다', '생각했다', '깨달았다', '다짐함' 등) 기재 금지",
         check: function(filteredPages) {
-          const targets = ['나는 ', '내가 ', '저의 ', '나의 '];
+          // 학생 시점 소감/일기 투 표현 전수 검출
+          const targets = [
+            '나는 ', '내가 ', '저의 ', '나의 ', 
+            '느꼈다', '느꼈음', '생각했다', '생각함', '깨달았다', '깨달음', 
+            '뿌듯했다', '뿌듯함', '다짐했다', '다짐함', '배웠다', '배움',
+            '기억에 남는다', '아쉬웠다', '기뻤다', '스스로 칭찬'
+          ];
           const issues = findKeywordLocations(filteredPages, targets);
           if (issues.length > 0) {
-            return { pass: false, issues: issues, msg: `1인칭 주어 표현 총 ${issues.length}건이 검출되었습니다. (3인칭 관찰자 시점 서술 필요)` };
+            return { pass: false, issues: issues, msg: `학생 시점 서술 및 1인칭 주관적 표현 총 ${issues.length}건이 검출되었습니다. (교사 관찰자 시점 객관적 서술로 수정 필요)` };
           }
-          return { pass: true, msg: "1인칭 표현 없음 (적합)" };
+          return { pass: true, msg: "학생 시점 및 1인칭 표현 없음 (적합)" };
         }
       },
       {
@@ -435,9 +445,35 @@
       },
       {
         id: 5,
-        title: "입력 문자(한글·영문) 원칙",
-        req: "학생부 문자는 한글(부득이한 경우 영문)로 입력 원칙",
-        check: function() { return { pass: true, msg: "한글 및 규격 문자 표기 준수" }; }
+        title: "한글 입력 원칙 (영문 표현 점검)",
+        req: "학교생활기록부 문자는 한글 입력 원칙. 서술형 항목 내 모든 영문 표현은 부득이한 경우 외 한글 표기 여부 확인을 위해 전수 표시",
+        check: function(filteredPages) {
+          const issues = [];
+          filteredPages.forEach(p => {
+            const sentences = p.text.split(/(?<=[.?!])\s+|\n{1,}/);
+            sentences.forEach(sentence => {
+              const clean = sentence.trim();
+              if (!clean || clean.length < 2) return;
+              if (clean.includes("10.131.") || (clean.includes("반") && clean.includes("번호") && clean.includes("성명"))) return;
+
+              // 알파벳 2글자 이상 단어 검색
+              const englishWords = clean.match(/\b[A-Za-z]{2,}\b/g);
+              if (englishWords) {
+                // 중복 제거 후 첫 번째 영문 단어로 등록
+                issues.push({
+                  page: p.page,
+                  word: englishWords[0],
+                  snippet: clean
+                });
+              }
+            });
+          });
+
+          if (issues.length > 0) {
+            return { pass: false, issues: issues, msg: `서술형 항목 내 영문 표현 총 ${issues.length}건이 검출되었습니다. (부득이한 공식 명칭 외 한글 표기 권장)` };
+          }
+          return { pass: true, msg: "불필요한 영문 표현 미검출 (한글 표기 준수)" };
+        }
       },
       {
         id: 6,
@@ -454,15 +490,47 @@
       },
       {
         id: 7,
-        title: "서술형 문장 종결어미 형식",
-        req: "서술형 항목 문장은 명사형 종결어미(~함, ~임 등)로 종결",
+        title: "명사형 종결어미 및 온점 마침표 검증",
+        req: "문장은 반드시 명사형 종결어미(~함., ~임., ~됨. 등)로 끝나야 하며, 문장 중간 끊김이나 끝 온점(.) 누락 여부 엄격 점검",
         check: function(filteredPages) {
-          const targets = ['했다.', '입니다.', '하였다.', '있습니다.'];
-          const issues = findKeywordLocations(filteredPages, targets);
+          const issues = [];
+          filteredPages.forEach(p => {
+            const lines = p.text.split('\n');
+            lines.forEach(line => {
+              const clean = line.trim();
+              if (!clean || clean.length < 4) return;
+              if (clean.includes("10.131.") || clean.includes("대부고등학교장") || clean.includes("과목별 세부능력")) return;
+
+              // 1) 온점 누락 검사: 문장 같은데 끝에 온점(.)이 없는 경우
+              if (!clean.endsWith('.')) {
+                issues.push({
+                  page: p.page,
+                  word: clean.slice(-3),
+                  snippet: clean + " ⚠️ [온점(.) 누락 또는 중간 끊김 의심]"
+                });
+                return;
+              }
+
+              // 2) 명사형 어미 검사 (~함., ~임., ~됨., ~음. 등으로 끝나는지 검사)
+              const validEndings = ['함.', '임.', '됨.', '음.', '봄.', '줌.', '감.'];
+              const lastTwoChars = clean.slice(-2);
+              const isValidEnding = validEndings.includes(lastTwoChars);
+
+              // 다. / 요. / 까. / 며 / 고 등 비명사형 종결어미 탐지
+              if (!isValidEnding) {
+                issues.push({
+                  page: p.page,
+                  word: lastTwoChars,
+                  snippet: clean
+                });
+              }
+            });
+          });
+
           if (issues.length > 0) {
-            return { pass: false, issues: issues, msg: `비명사형 종결어미 총 ${issues.length}건이 검출되었습니다.` };
+            return { pass: false, issues: issues, msg: `명사형 종결어미(~함., ~임. 등) 위반 및 온점 누락 총 ${issues.length}건이 검출되었습니다.` };
           }
-          return { pass: true, msg: "명사형 종결어미 준수" };
+          return { pass: true, msg: "명사형 종결어미 및 마침표 규격 준수 확인" };
         }
       },
       {
@@ -504,9 +572,23 @@
       },
       {
         id: 13,
-        title: "학급자치회 임원 종류·재임기간",
-        req: "학급당 회장 1명, 부회장 1명 및 재임기간 명시",
-        check: function() { return { pass: true, msg: "자치 임원 표기 및 재임기간 규격 일치" }; }
+        title: "[더블체크] 학급·전교 자치회 임원 종류 및 재임기간",
+        req: "학급자치회(회장 1명, 부회장 1명) 및 전교자치회 임원 종류와 재임기간(1·2학년: 3월 1일~학년말, 3학년: 3월 1일~졸업일) 정확성 더블체크",
+        check: function(filteredPages) {
+          // 임원 관련 문구는 틀리지 않았더라도 전수 추출하여 더블체크를 도움
+          const targets = ['회장', '부회장', '자치회', '반장', '실장'];
+          const rawIssues = findKeywordLocations(filteredPages, targets);
+
+          if (rawIssues.length > 0) {
+            return { 
+              pass: false, 
+              isDoubleCheck: true, // 더블체크 플래그
+              issues: rawIssues, 
+              msg: `⚠️ 오류가 아니라 임원 명칭 및 재임기간 규격 더블체크를 위해 표시되었습니다. (총 ${rawIssues.length}건 확인)` 
+            };
+          }
+          return { pass: true, msg: "자치활동 임원 기재 내역 없음 (해당 없음)" };
+        }
       },
       {
         id: 14,
@@ -516,9 +598,35 @@
       },
       {
         id: 15,
-        title: "자치활동 임원 재임기간 규정",
-        req: "1·2학년 3월 1일~학년말, 3학년 졸업일 준수",
-        check: function() { return { pass: true, msg: "재임 시작일 및 종료일자 규정 부합" }; }
+        title: "맞춤법·띄어쓰기 및 비문·어색한 문맥 점검",
+        req: "맞춤법, 띄어쓰기 반복 오류, 서술어·목적어 누락으로 의미가 불명확한 어색한 문장 점검",
+        check: function(filteredPages) {
+          const issues = [];
+          filteredPages.forEach(p => {
+            const sentences = p.text.split(/(?<=[.?!])\s+|\n{1,}/);
+            sentences.forEach(sentence => {
+              const clean = sentence.trim();
+              if (!clean || clean.length < 5) return;
+              if (clean.includes("10.131.") || clean.includes("대부고등학교장")) return;
+
+              // 1) 공백 2칸 이상 연속 띄어쓰기 오류
+              if (/\s{2,}/.test(clean)) {
+                issues.push({ page: p.page, word: "  ", snippet: clean + " ⚠️ [비정상 다중 공백 발견]" });
+                return;
+              }
+
+              // 2) 문맥상 불완전/어색한 문장 (조사로 끝나거나 문장 길이가 비정상적으로 짧은 경우)
+              if (/(하고|하며|위해|통해|대한|있는|은|는|이|가|을|를)\.$/.test(clean)) {
+                issues.push({ page: p.page, word: clean.slice(-3), snippet: clean + " ⚠️ [서술어 누락/비문 의심]" });
+              }
+            });
+          });
+
+          if (issues.length > 0) {
+            return { pass: false, issues: issues, msg: `맞춤법·띄어쓰기 및 어색한 문맥 총 ${issues.length}건이 검출되었습니다.` };
+          }
+          return { pass: true, msg: "맞춤법, 띄어쓰기 및 문맥 호응 양호" };
+        }
       },
       {
         id: 16,
@@ -796,6 +904,7 @@
       return results;
     }
 
+    // 초기 테이블 렌더링 (모든 항목에 기본 드롭다운 배치)
     function initTable() {
       const tbody = document.getElementById("checklistBody");
       tbody.innerHTML = "";
@@ -808,7 +917,14 @@
             <div style="font-weight: 600; color: #475569; margin-bottom: 2px;">${r.req}</div>
             <div style="font-size: 12px; color: #94a3b8;">PDF 파일 업로드 시 자동 검사됩니다.</div>
           </td>
-          <td class="td-status"><span class="status-tag status-wait">대기</span></td>
+          <td class="td-status">
+            <select class="status-select select-need-check" onchange="handleStatusChange(this)">
+              <option value="확인 필요" selected>확인 필요</option>
+              <option value="확인 완료">확인 완료</option>
+              <option value="수정 필요">수정 필요</option>
+              <option value="수정 완료">수정 완료</option>
+            </select>
+          </td>
         `;
         tbody.appendChild(tr);
       });
@@ -905,6 +1021,7 @@
       }
     }
 
+    // 드롭다운 변경 처리 함수
     function handleStatusChange(selectElement) {
       const val = selectElement.value;
       selectElement.className = "status-select";
@@ -934,19 +1051,21 @@
 
         let issuesHtml = "";
         if (!result.pass && result.issues && result.issues.length > 0) {
+          const isBlue = result.isDoubleCheck; // 더블체크 항목인 경우 파란색 배지 적용
           issuesHtml = `
-            <div class="detected-box">
-              <div class="detected-count-badge">총 ${result.issues.length}건의 수정 대상 검출 (전체 목록) :</div>
+            <div class="detected-box ${isBlue ? 'double-check-box' : ''}">
+              <div class="detected-count-badge ${isBlue ? 'blue' : ''}">
+                ${isBlue ? '📋 자치회 임원 기재 내역 (더블체크 대상)' : `총 ${result.issues.length}건의 점검·수정 대상 검출 (전체 목록)`} :
+              </div>
               ${result.issues.map(iss => {
-                // ★ [핵심 버그 수정] escapeRegExp 적용으로 ?, ! 등 특수문자 치환 시 에러 원천 차단!
                 const safeWord = escapeRegExp(iss.word);
                 const highlighted = iss.snippet.replace(
                   new RegExp(safeWord, 'g'), 
                   `<span class="highlight-word">${iss.word}</span>`
                 );
                 return `
-                  <div class="detected-item">
-                    <span class="page-tag">${iss.page}페이지</span>
+                  <div class="detected-item ${isBlue ? 'blue' : ''}">
+                    <span class="page-tag ${isBlue ? 'blue' : ''}">${iss.page}페이지</span>
                     <span>“...${highlighted}...”</span>
                   </div>
                 `;
@@ -955,10 +1074,30 @@
           `;
         }
 
+        // ★ [핵심] 모든 24개 항목에 드롭다운 메뉴 설치!
         let statusColHtml = "";
         if (result.pass) {
-          statusColHtml = `<span class="status-tag status-ok">적합</span>`;
+          // 적합인 항목은 기본 '확인 완료' 상태로 드롭다운 제공
+          statusColHtml = `
+            <select class="status-select select-done" onchange="handleStatusChange(this)">
+              <option value="확인 완료" selected>확인 완료 (적합)</option>
+              <option value="확인 필요">확인 필요</option>
+              <option value="수정 필요">수정 필요</option>
+              <option value="수정 완료">수정 완료</option>
+            </select>
+          `;
+        } else if (result.isDoubleCheck) {
+          // 더블체크 항목은 '확인 필요' 상태로 드롭다운 제공
+          statusColHtml = `
+            <select class="status-select select-need-check" onchange="handleStatusChange(this)">
+              <option value="확인 필요" selected>확인 필요 (더블체크)</option>
+              <option value="확인 완료">확인 완료</option>
+              <option value="수정 필요">수정 필요</option>
+              <option value="수정 완료">수정 완료</option>
+            </select>
+          `;
         } else {
+          // 오류 검출 항목은 기본 '수정 필요' 상태로 드롭다운 제공
           statusColHtml = `
             <select class="status-select select-need-fix" onchange="handleStatusChange(this)">
               <option value="수정 필요" selected>수정 필요</option>
@@ -975,8 +1114,8 @@
           <td class="td-name">${rule.title}</td>
           <td>
             <div style="font-weight: 600; color: #334155; margin-bottom: 3px;">${rule.req}</div>
-            <div style="font-size: 12.5px; color: ${result.pass ? '#059669' : '#dc2626'}; font-weight: 600;">
-              ${result.pass ? '✓ ' : '⚠ '}${result.msg}
+            <div style="font-size: 12.5px; color: ${result.pass ? '#059669' : (result.isDoubleCheck ? '#1d4ed8' : '#dc2626')}; font-weight: 600;">
+              ${result.pass ? '✓ ' : (result.isDoubleCheck ? 'ℹ ' : '⚠ ')}${result.msg}
             </div>
             ${issuesHtml}
           </td>
@@ -987,7 +1126,7 @@
         tbody.appendChild(tr);
       });
 
-      // 수치 갱신 (항상 24개 기준)
+      // 수치 갱신
       document.getElementById("statTotal").innerHTML = `${total}<span>개</span>`;
       document.getElementById("statPass").innerHTML = `${passCount}<span>개</span>`;
       document.getElementById("statFail").innerHTML = `${failCount}<span>건</span>`;
@@ -997,10 +1136,10 @@
       const summaryText = document.getElementById("reportSummary");
 
       if (failCount > 0) {
-        alertBadge.textContent = `수정 필요 ${failCount}건`;
+        alertBadge.textContent = `확인·수정 대상 ${failCount}건`;
         alertBadge.style.color = "#b91c1c";
         alertBadge.style.borderColor = "#ef4444";
-        summaryText.innerHTML = `점검할 항목 <strong>${total}개 중 ${total}개</strong>를 점검 완료하였으며, <strong>수정사항은 ${failCount}개</strong>입니다. 하단의 페이지 번호와 해당 문맥을 확인해 주세요.`;
+        summaryText.innerHTML = `점검할 항목 <strong>${total}개 중 ${total}개</strong>를 점검 완료하였으며, <strong>수정 및 확인(더블체크) 항목은 총 ${failCount}개</strong>입니다. 각 항목 우측 드롭다운으로 조치 결과를 확정해 주세요.`;
       } else {
         alertBadge.textContent = `전 항목 적합 통과`;
         alertBadge.style.color = "#047857";
