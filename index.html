@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2026학년도 2학기 학교생활기록부 점검 (오탐지 완전 제거 버전)</title>
+  <title>2026학년도 2학기 학교생활기록부 점검 (완전한 문장 전체 출력)</title>
   <!-- PDF.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
@@ -272,9 +272,10 @@
     }
     .detected-text {
       flex: 1;
-      font-size: 12.5px;
-      color: #991b1b;
-      line-height: 1.55;
+      font-size: 13px;
+      color: #7f1d1d;
+      line-height: 1.65;
+      word-break: keep-all; /* 한글 단어 끊김 방지 */
     }
     .detected-box.double-check-box .detected-text {
       color: #1e40af;
@@ -301,7 +302,7 @@
       color: white;
       font-weight: 700;
       font-size: 11px;
-      padding: 2px 6px;
+      padding: 2px 7px;
       border-radius: 4px;
       margin-right: 6px;
       display: inline-block;
@@ -315,6 +316,7 @@
       font-weight: 700;
       padding: 1px 4px;
       border-radius: 3px;
+      border: 1px solid #fde047;
     }
   </style>
 </head>
@@ -322,7 +324,7 @@
 
   <header class="navbar">
     <div class="logo">
-      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">서술영역 오탐지 완벽 차단</span>
+      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">문장 전체(Full-Sentence) 출력 지원</span>
     </div>
   </header>
 
@@ -341,7 +343,7 @@
       <input type="file" id="pdfInput" accept=".pdf, .txt" onchange="handleFile(event)">
       <div class="upload-icon">📄</div>
       <div class="upload-title" id="uploadTitle">생활기록부 PDF 파일을 업로드하세요</div>
-      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요. (나이스 PDF 인쇄성 허위 공백 완전 필터링)</div>
+      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요. (검출 시 주어부터 서술어까지 문장 전체를 온전하게 표시합니다)</div>
       <div class="status-analyzing" id="loadingText">⏳ PDF 페이지별 텍스트 및 위치를 정밀 분석하고 있습니다...</div>
     </div>
 
@@ -388,7 +390,7 @@
             <tr>
               <th class="td-num">번호</th>
               <th class="td-name">검토 항목</th>
-              <th>검증 기준 및 실제 검출 내용 (개별 조치 드롭다운 제공)</th>
+              <th>검증 기준 및 실제 검출 내용 (문장 전체 표기)</th>
               <th class="td-status">판정</th>
             </tr>
           </thead>
@@ -468,24 +470,23 @@
       {
         id: 5,
         title: "한글 입력 원칙 (영문 표현 점검)",
-        req: "학교생활기록부 문자는 한글 입력 원칙. 서술형 항목 내 모든 영문 표현은 부득이한 경우 외 한글 표기 여부 확인을 위해 전수 표시 (※ 서식제목 '학교생활기록부II'의 II는 제외)",
+        req: "학교생활기록부 문자는 한글 입력 원칙. 서술형 항목 내 모든 영문 표현(단독 알파벳 x, y 포함)은 부득이한 경우 외 한글 표기 여부 확인을 위해 전수 표시 (※ 서식제목 '학교생활기록부II'의 II는 제외)",
         check: function(filteredPages, narrativePages) {
           const issues = [];
           narrativePages.forEach(p => {
-            const sentences = p.text.split(/(?<=[.?!])\s+|\n{1,}/);
-            sentences.forEach(sentence => {
+            p.sentences.forEach(sentence => {
               const clean = sentence.trim();
               if (!clean || clean.length < 2) return;
               if (clean.includes("10.131.") || clean.includes("학교생활세부사항기록부") || clean.includes("학교생활기록부II") || clean.includes("학교생활기록부 II")) return;
 
-              const englishWords = clean.match(/\b[A-Za-z]{2,}\b/g);
+              const englishWords = clean.match(/\b[A-Za-z]+\b/g);
               if (englishWords) {
                 const filteredEng = englishWords.filter(w => w !== 'II' && w !== 'ii');
                 if (filteredEng.length > 0) {
                   issues.push({
                     page: p.page,
                     word: filteredEng[0],
-                    snippet: clean
+                    snippet: clean // 문장 전체 반환
                   });
                 }
               }
@@ -493,7 +494,7 @@
           });
 
           if (issues.length > 0) {
-            return { pass: false, issues: issues, msg: `서술형 항목 내 영문 표현 총 ${issues.length}건이 검출되었습니다. (부득이한 공식 명칭 외 한글 표기 권장)` };
+            return { pass: false, issues: issues, msg: `서술형 항목 내 영문 표현(단독 알파벳 포함) 총 ${issues.length}건이 검출되었습니다. (수식 x, 공식 명칭 외 한글 표기 권장)` };
           }
           return { pass: true, msg: "불필요한 영문 표현 미검출 (한글 표기 준수)" };
         }
@@ -501,12 +502,12 @@
       {
         id: 6,
         title: "특수문자·문단구분 기호 제한",
-        req: "기재 가능: 직선 작은따옴표(') , . () / 기재 불가: 둥근 곡선 작은따옴표(‘ ’), 큰따옴표(“, ”, \"), ·(가운데점), ?, ! (※ 성적표, 인적·학적, 수상 제외)",
+        req: "기재 가능: 직선 작은따옴표(') , . () / 기재 불가: 둥근 곡선 작은따옴표(‘ ’), 큰따옴표(“, ”, \"), =, ~, +, -, ·(가운데점), ?, ! (※ 성적표, 인적·학적, 수상 제외)",
         check: function(filteredPages, narrativePages) {
-          const targets = ['·', '‘', '’', '“', '”', '"', '?', '!'];
+          const targets = ['·', '‘', '’', '“', '”', '"', '?', '!', '=', '~'];
           const issues = findKeywordLocations(narrativePages, targets);
           if (issues.length > 0) {
-            return { pass: false, issues: issues, msg: `기재 지양 특수문자(곡선따옴표, 큰따옴표, 가운데점 등) 총 ${issues.length}건이 서술 영역에서 검출되었습니다.` };
+            return { pass: false, issues: issues, msg: `기재 지양 특수문자(수식 등호(=), 곡선따옴표, 큰따옴표, 가운데점 등) 총 ${issues.length}건이 서술 영역에서 검출되었습니다.` };
           }
           return { pass: true, msg: "서술 영역 내 허용 부호 외 특수문자 미검출 (곧은 ' 따옴표 준수)" };
         }
@@ -514,38 +515,35 @@
       {
         id: 7,
         title: "명사형 종결어미 및 온점 마침표 검증",
-        req: "창체 3개 영역(자율·동아리·진로), 과목별 세특, 행동특성 및 종합의견 서술문은 반드시 명사형 종결어미(~함., ~임., ~됨.) 및 끝 온점(.) 준수 필수 (표 및 머리말 제외)",
+        req: "창체 3개 영역(자율·동아리·진로), 과목별 세특, 행동특성 및 종합의견 서술문은 반드시 명사형 종결어미(~함., ~임., ~됨.) 및 끝 온점(.) 준수 필수 (줄바꿈 문장 자동 복원 적용)",
         check: function(filteredPages, narrativePages) {
           const issues = [];
-          // ★ [완전 해결]: 오직 순수 서술문만 담긴 narrativePages에서만 검증
           narrativePages.forEach(p => {
-            const lines = p.text.split('\n');
-            lines.forEach(line => {
-              const clean = line.trim();
-              // 최소 12글자 이상의 완전한 서술 문장만 검사 (표 제목, 과목명 라벨 등 배제)
-              if (!clean || clean.length < 12) return;
+            p.sentences.forEach(sentence => {
+              const clean = sentence.trim();
+              if (!clean || clean.length < 10) return;
               if (clean.includes("10.131.") || clean.includes("대부고등학교장") || clean.includes("특기사항") || clean.includes("이수학점")) return;
 
               // 1) 온점 누락 검사
-              if (!clean.endsWith('.')) {
+              if (!clean.endsWith('.') && !clean.endsWith('.)') && !clean.endsWith(".'")) {
                 issues.push({
                   page: p.page,
                   word: clean.slice(-4),
-                  snippet: clean + " ⚠️ [온점(.) 누락 또는 중간 끊김 의심]"
+                  snippet: clean + " ⚠️ [온점(.) 누락 또는 문장 중간 끊김]"
                 });
                 return;
               }
 
               // 2) 명사형 종결어미 검사
-              const validEndings = ['함.', '임.', '됨.', '음.', '봄.', '줌.', '감.'];
-              const lastTwoChars = clean.slice(-2);
-              const isValidEnding = validEndings.includes(lastTwoChars);
+              const coreSentence = clean.replace(/[.)'"]+$/, '');
+              const lastChar = coreSentence.slice(-1);
+              const validLastChars = ['함', '임', '됨', '음', '봄', '줌', '감'];
 
-              if (!isValidEnding) {
+              if (!validLastChars.includes(lastChar)) {
                 issues.push({
                   page: p.page,
-                  word: lastTwoChars,
-                  snippet: clean
+                  word: coreSentence.slice(-2) + '.',
+                  snippet: clean // 문장 전체 반환
                 });
               }
             });
@@ -601,9 +599,8 @@
         check: function(filteredPages, narrativePages) {
           const issues = [];
           narrativePages.forEach(p => {
-            const lines = p.text.split('\n');
-            lines.forEach(line => {
-              const clean = line.trim();
+            p.sentences.forEach(sentence => {
+              const clean = sentence.trim();
               if (!clean || clean.length < 3) return;
 
               if (/(회\s*장|부\s*회\s*장|자\s*치\s*회|반\s*장|실\s*장)/.test(clean)) {
@@ -612,7 +609,7 @@
                   issues.push({
                     page: p.page,
                     word: matchWord ? matchWord[0] : "자치회",
-                    snippet: clean
+                    snippet: clean // 임원 명칭 및 기간이 포함된 문장 전체
                   });
                 }
               }
@@ -639,26 +636,23 @@
       {
         id: 15,
         title: "맞춤법·띄어쓰기 및 비문·어색한 문맥 점검",
-        req: "조사 분리 오타, 명백한 띄어쓰기 오류, 비문 점검 (※ PDF 자간 렌더링성 허위 공백 완전 필터링 적용)",
+        req: "명백한 조사 분리 오타, 문맥상 비문 점검 (※ PDF 인쇄 자간 허위 공백 완전 필터링 적용)",
         check: function(filteredPages, narrativePages) {
-          // ★ [완전 해결]: PDF 인쇄 자간 때문에 발생하는 허위 띄어쓰기(노 력 함 .) 전면 제거
           const issues = [];
           narrativePages.forEach(p => {
-            const sentences = p.text.split(/(?<=[.?!])\s+|\n{1,}/);
-            sentences.forEach(sentence => {
-              let clean = sentence.trim();
+            p.sentences.forEach(sentence => {
+              const clean = sentence.trim();
               if (!clean || clean.length < 10) return;
               if (clean.includes("10.131.") || clean.includes("대부고등학교장") || clean.includes("학교생활기록부")) return;
 
-              // 1) 조사 단독 분리 오타 검사 (앞 단어와 띄어쓰기가 비정상적으로 들어간 경우)
-              // (단, '이 번', '그 때' 등 일반 관형사 제외하고 명백한 조사 분리만)
+              // 1) 조사 단독 분리 오타 (예: "탐구 를", "학생 에게")
               const josaMatch = clean.match(/[가-힣]{2,}\s+(을|를|에게|께서)\s+[가-힣]/);
               if (josaMatch) {
                 issues.push({ page: p.page, word: josaMatch[0], snippet: clean + " ⚠️ [조사 분리 띄어쓰기 오류 의심]" });
                 return;
               }
 
-              // 2) 문맥상 비정상 비문 (조사나 어미로 문장이 끝나버린 경우)
+              // 2) 문맥상 비정상 비문 (조사나 어미로 문장이 덜 끝난 경우)
               if (/(하고|하며|위해|통해|대한|있는|은|는|이|가|을|를)\.$/.test(clean)) {
                 issues.push({ page: p.page, word: clean.slice(-3), snippet: clean + " ⚠️ [서술어 누락/비문 의심]" });
               }
@@ -714,9 +708,11 @@
         check: function(filteredPages, narrativePages) {
           const issues = [];
           narrativePages.forEach(p => {
-            if (p.text.includes("읽음") && !p.text.includes("(") && !p.text.includes(")")) {
-              issues.push({ page: p.page, word: "도서명", snippet: "도서명 뒤 저자 괄호 표기 누락 추정" });
-            }
+            p.sentences.forEach(sentence => {
+              if (sentence.includes("읽음") && !sentence.includes("(") && !sentence.includes(")")) {
+                issues.push({ page: p.page, word: "도서명", snippet: sentence + " ⚠️ [도서명 뒤 저자 괄호 표기 누락 추정]" });
+              }
+            });
           });
           if (issues.length > 0) {
             return { pass: false, issues: issues, msg: `도서명 뒤 (저자) 형식 누락 가능성 ${issues.length}건이 있습니다.` };
@@ -835,12 +831,13 @@
       });
     }
 
-    // ★ 2. 순수 5대 서술 영역만 완벽 추출 (표지/표 제목 100% 원천 차단)
+    // 2. 순수 5대 서술 영역 추출 및 문장 병합 복원 (줄바꿈 끊김 완벽 복원)
     function extractPureNarratives(filteredPages) {
       return filteredPages.map(p => {
         const lines = p.text.split('\n');
-        const narrativeLines = [];
+        let currentParagraph = "";
         let inNarrative = false;
+        const completeSentences = [];
 
         for (let line of lines) {
           const trimmed = line.trim();
@@ -865,42 +862,67 @@
           }
 
           if (inNarrative) {
-            // ★ 나이스 인쇄성 허위 공백 정규화: 문장부호 앞의 인쇄 공백 자동 제거 ("함 ." -> "함.")
-            let normalizedLine = line.replace(/\s+([.,!?:])/g, '$1');
-            narrativeLines.push(normalizedLine);
+            const normalized = trimmed.replace(/\s+([.,!?:])/g, '$1');
+
+            if (currentParagraph.length > 0 && !currentParagraph.endsWith(' ')) {
+              currentParagraph += " ";
+            }
+            currentParagraph += normalized;
+
+            // 마침표(`.`)로 문장이 끝났거나 새 과목/영역이 시작될 때 문장 분리
+            if (/[.?!]$/.test(normalized) || /:\s*$/.test(normalized)) {
+              const sList = currentParagraph.split(/(?<=[.?!])\s+/);
+              sList.forEach(s => {
+                const sClean = s.trim();
+                if (sClean.length > 3) completeSentences.push(sClean);
+              });
+              currentParagraph = "";
+            }
           }
         }
 
-        // 서술형 영역이 없는 페이지(예: 1페이지 표지/인적사항 등)는 완전히 빈 텍스트("")를 반환하여 오탐지 원천 차단!
+        if (currentParagraph.trim().length > 3) {
+          completeSentences.push(currentParagraph.trim());
+        }
+
         return {
           page: p.page,
-          text: narrativeLines.join('\n')
+          sentences: completeSentences
         };
       });
     }
 
-    function findKeywordLocations(pages, targets, strictWords = []) {
+    // ★ [핵심] 키워드가 포함된 문장 전체(주어부터 서술어/온점까지)를 100% 온전하게 반환
+    function findKeywordLocations(narrativePages, targets, strictWords = []) {
       const results = [];
-      pages.forEach(p => {
-        const sentences = p.text.split(/(?<=[.?!])\s+|\n{1,}/);
-
-        sentences.forEach(sentence => {
+      narrativePages.forEach(p => {
+        p.sentences.forEach(sentence => {
           const cleanSentence = sentence.trim();
           if (!cleanSentence || cleanSentence.length < 2) return;
 
           if (cleanSentence.includes("10.131.") || (cleanSentence.includes("반") && cleanSentence.includes("번호") && cleanSentence.includes("성명"))) return;
           if (cleanSentence.includes("(학교)대부고등학교") || cleanSentence.includes("대부중학교 제3학년") || cleanSentence.includes("대부고등학교 제1학년") || cleanSentence.includes("대부고등학교장")) return;
 
+          // 1) 일반 대상 검색
           targets.forEach(t => {
             if (cleanSentence.includes(t)) {
-              results.push({ page: p.page, word: t, snippet: cleanSentence });
+              results.push({
+                page: p.page,
+                word: t,
+                snippet: cleanSentence // 줄임 없는 문장 전체 반환!
+              });
             }
           });
 
+          // 2) 엄격 단어 검색
           strictWords.forEach(sw => {
             const regex = new RegExp(`(^|[^a-zA-Z가-힣])${escapeRegExp(sw)}([^a-zA-Z가-힣]|$)`);
             if (regex.test(cleanSentence)) {
-              results.push({ page: p.page, word: sw, snippet: cleanSentence });
+              results.push({
+                page: p.page,
+                word: sw,
+                snippet: cleanSentence // 줄임 없는 문장 전체 반환!
+              });
             }
           });
         });
@@ -1034,6 +1056,7 @@
       }
     }
 
+    // 24개 검사 실행 및 문장 전체 렌더링
     function runInspection(filteredPages, narrativePages, filename) {
       const tbody = document.getElementById("checklistBody");
       tbody.innerHTML = "";
@@ -1052,10 +1075,11 @@
           issuesHtml = `
             <div class="detected-box ${isBlue ? 'double-check-box' : ''}">
               <div class="detected-count-badge ${isBlue ? 'blue' : ''}">
-                ${isBlue ? '📋 자치회 임원 기재 내역 (명칭 및 재임기간 더블체크 대상)' : `총 ${result.issues.length}건의 점검·수정 대상 검출 (전체 목록)`} :
+                ${isBlue ? '📋 자치회 임원 기재 내역 (명칭 및 재임기간 더블체크 대상)' : `총 ${result.issues.length}건의 점검·수정 대상 검출 (문장 전체)`} :
               </div>
               ${result.issues.map(iss => {
                 const safeWord = escapeRegExp(iss.word);
+                // 문장 전체에서 키워드만 정확하게 하이라이트
                 const highlighted = iss.snippet.replace(
                   new RegExp(safeWord, 'g'), 
                   `<span class="highlight-word">${iss.word}</span>`
@@ -1064,7 +1088,8 @@
                   <div class="detected-row">
                     <div class="detected-text">
                       <span class="page-tag ${isBlue ? 'blue' : ''}">${iss.page}페이지</span>
-                      <span>“...${highlighted}...”</span>
+                      <!-- 말줄임표 없이 문장 전체 온전 표시 -->
+                      <span>${highlighted}</span>
                     </div>
                     <select class="item-select ${isBlue ? 'select-need-check' : 'select-need-fix'}" onchange="handleItemStatusChange(this)">
                       <option value="${isBlue ? '확인 필요' : '수정 필요'}" selected>${isBlue ? '확인 필요' : '수정 필요'}</option>
