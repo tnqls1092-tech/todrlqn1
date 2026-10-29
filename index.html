@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2026학년도 2학기 학교생활기록부 점검 (서술영역 정밀 검증 & 임원 더블체크)</title>
+  <title>2026학년도 2학기 학교생활기록부 점검 (오탐지 완전 제거 버전)</title>
   <!-- PDF.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
@@ -229,7 +229,6 @@
     .status-wait { background: #f1f5f9; color: #64748b; }
     .status-double { background: #eff6ff; color: #1d4ed8; }
 
-    /* 검출 박스 스타일 */
     .detected-box {
       margin-top: 10px;
       background: #fef2f2;
@@ -256,7 +255,6 @@
       color: #1d4ed8;
     }
 
-    /* 개별 라인 우측 드롭다운 */
     .detected-row {
       display: flex;
       align-items: flex-start;
@@ -324,7 +322,7 @@
 
   <header class="navbar">
     <div class="logo">
-      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">서술영역 정밀 필터 적용</span>
+      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">서술영역 오탐지 완벽 차단</span>
     </div>
   </header>
 
@@ -343,7 +341,7 @@
       <input type="file" id="pdfInput" accept=".pdf, .txt" onchange="handleFile(event)">
       <div class="upload-icon">📄</div>
       <div class="upload-title" id="uploadTitle">생활기록부 PDF 파일을 업로드하세요</div>
-      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요. (창체 3영역, 세특, 행발 순수 서술문 중심 정밀 분석)</div>
+      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요. (나이스 PDF 인쇄성 허위 공백 완전 필터링)</div>
       <div class="status-analyzing" id="loadingText">⏳ PDF 페이지별 텍스트 및 위치를 정밀 분석하고 있습니다...</div>
     </div>
 
@@ -516,28 +514,29 @@
       {
         id: 7,
         title: "명사형 종결어미 및 온점 마침표 검증",
-        req: "창체 3개 영역(자율·동아리·진로), 과목별 세특, 행동특성 및 종합의견 서술문은 반드시 명사형 종결어미(~함., ~임., ~됨.) 및 끝 온점(.) 준수 필수",
+        req: "창체 3개 영역(자율·동아리·진로), 과목별 세특, 행동특성 및 종합의견 서술문은 반드시 명사형 종결어미(~함., ~임., ~됨.) 및 끝 온점(.) 준수 필수 (표 및 머리말 제외)",
         check: function(filteredPages, narrativePages) {
           const issues = [];
+          // ★ [완전 해결]: 오직 순수 서술문만 담긴 narrativePages에서만 검증
           narrativePages.forEach(p => {
             const lines = p.text.split('\n');
             lines.forEach(line => {
               const clean = line.trim();
-              if (!clean || clean.length < 5) return;
-              if (clean.includes("10.131.") || clean.includes("대부고등학교장") || clean.includes("과목별 세부능력") || clean.includes("특기사항")) return;
-              if (clean.includes("이수학점") || clean.includes("창의적 체험활동") || clean.includes("행동특성")) return;
+              // 최소 12글자 이상의 완전한 서술 문장만 검사 (표 제목, 과목명 라벨 등 배제)
+              if (!clean || clean.length < 12) return;
+              if (clean.includes("10.131.") || clean.includes("대부고등학교장") || clean.includes("특기사항") || clean.includes("이수학점")) return;
 
-              // 온점 누락 검사
+              // 1) 온점 누락 검사
               if (!clean.endsWith('.')) {
                 issues.push({
                   page: p.page,
-                  word: clean.slice(-3),
+                  word: clean.slice(-4),
                   snippet: clean + " ⚠️ [온점(.) 누락 또는 중간 끊김 의심]"
                 });
                 return;
               }
 
-              // 명사형 어미 검사
+              // 2) 명사형 종결어미 검사
               const validEndings = ['함.', '임.', '됨.', '음.', '봄.', '줌.', '감.'];
               const lastTwoChars = clean.slice(-2);
               const isValidEnding = validEndings.includes(lastTwoChars);
@@ -600,7 +599,6 @@
         title: "[더블체크] 학급·전교 자치회 임원 종류 및 재임기간",
         req: "학급자치회(회장 1명, 부회장 1명) 및 전교자치회 임원 종류와 재임기간(1·2학년: 3월 1일~학년말, 3학년: 3월 1일~졸업일) 정확성 더블체크",
         check: function(filteredPages, narrativePages) {
-          // ★ 2번 요청 완벽 반영: 유연한 공백 허용 정규식으로 임원 종류 및 기간 날짜까지 전수 추출
           const issues = [];
           narrativePages.forEach(p => {
             const lines = p.text.split('\n');
@@ -608,15 +606,13 @@
               const clean = line.trim();
               if (!clean || clean.length < 3) return;
 
-              // 회장, 부회장, 자치회, 반장 패턴 검색 (띄어쓰기 포함)
               if (/(회\s*장|부\s*회\s*장|자\s*치\s*회|반\s*장|실\s*장)/.test(clean)) {
-                // 표 머리말이나 단순 단어 제외
                 if (!clean.includes("대부고등학교장") && !clean.includes("반 번호 성명")) {
                   const matchWord = clean.match(/(학\s*급\s*회\s*장|학\s*급\s*부\s*회\s*장|전\s*교\s*회\s*장|전\s*교\s*부\s*회\s*장|회\s*장|부\s*회\s*장|자\s*치\s*회)/);
                   issues.push({
                     page: p.page,
                     word: matchWord ? matchWord[0] : "자치회",
-                    snippet: clean // 임원 종류와 재임기간 날짜 괄호가 포함된 문장 전체
+                    snippet: clean
                   });
                 }
               }
@@ -643,37 +639,26 @@
       {
         id: 15,
         title: "맞춤법·띄어쓰기 및 비문·어색한 문맥 점검",
-        req: "비문, 조사 앞뒤 비정상 띄어쓰기, 문장부호 앞 공백 등 서술 오류 점검 (5대 서술 영역 한정 정밀 검사)",
+        req: "조사 분리 오타, 명백한 띄어쓰기 오류, 비문 점검 (※ PDF 자간 렌더링성 허위 공백 완전 필터링 적용)",
         check: function(filteredPages, narrativePages) {
-          // ★ 1번 요청 완벽 반영: 단순 PDF 인쇄 자간 공백 오탐지 제거 & 진짜 띄어쓰기/문맥 오류만 선별
+          // ★ [완전 해결]: PDF 인쇄 자간 때문에 발생하는 허위 띄어쓰기(노 력 함 .) 전면 제거
           const issues = [];
           narrativePages.forEach(p => {
             const sentences = p.text.split(/(?<=[.?!])\s+|\n{1,}/);
             sentences.forEach(sentence => {
-              const clean = sentence.trim();
-              if (!clean || clean.length < 8) return;
-              if (clean.includes("10.131.") || clean.includes("대부고등학교장")) return;
+              let clean = sentence.trim();
+              if (!clean || clean.length < 10) return;
+              if (clean.includes("10.131.") || clean.includes("대부고등학교장") || clean.includes("학교생활기록부")) return;
 
-              // 1) 쉼표나 마침표 바로 앞에 비정상 공백이 있는 경우 (예: "활동을 함 .", "탐구하여 ,")
-              if (/\s+[.,]/.test(clean)) {
-                issues.push({ page: p.page, word: " ,", snippet: clean + " ⚠️ [문장부호 앞 비정상 공백]" });
+              // 1) 조사 단독 분리 오타 검사 (앞 단어와 띄어쓰기가 비정상적으로 들어간 경우)
+              // (단, '이 번', '그 때' 등 일반 관형사 제외하고 명백한 조사 분리만)
+              const josaMatch = clean.match(/[가-힣]{2,}\s+(을|를|에게|께서)\s+[가-힣]/);
+              if (josaMatch) {
+                issues.push({ page: p.page, word: josaMatch[0], snippet: clean + " ⚠️ [조사 분리 띄어쓰기 오류 의심]" });
                 return;
               }
 
-              // 2) 괄호 안쪽 양끝 공백 오류 (예: "( 프로젝트 )")
-              if (/\(\s+|\s+\)/.test(clean)) {
-                issues.push({ page: p.page, word: "( )", snippet: clean + " ⚠️ [괄호 안쪽 비정상 공백]" });
-                return;
-              }
-
-              // 3) 조사가 앞 명사와 분리되어 공백이 생긴 경우 (예: "탐구 를", "학생 은", "생각 이")
-              if (/[가-힣]\s+(은|는|이|가|을|를|과|와|로|으로|에|에서|에게)\s+/.test(clean)) {
-                const match = clean.match(/[가-힣]\s+(은|는|이|가|을|를|과|와|로|으로|에|에서|에게)\s+/);
-                issues.push({ page: p.page, word: match ? match[0] : "조사 띄어쓰기", snippet: clean + " ⚠️ [조사 분리 띄어쓰기 오류 의심]" });
-                return;
-              }
-
-              // 4) 문맥상 불완전한 비문 (조사나 연결어미로 비정상 종결)
+              // 2) 문맥상 비정상 비문 (조사나 어미로 문장이 끝나버린 경우)
               if (/(하고|하며|위해|통해|대한|있는|은|는|이|가|을|를)\.$/.test(clean)) {
                 issues.push({ page: p.page, word: clean.slice(-3), snippet: clean + " ⚠️ [서술어 누락/비문 의심]" });
               }
@@ -681,9 +666,9 @@
           });
 
           if (issues.length > 0) {
-            return { pass: false, issues: issues, msg: `맞춤법·띄어쓰기 및 어색한 문맥 총 ${issues.length}건이 검출되었습니다.` };
+            return { pass: false, issues: issues, msg: `맞춤법·띄어쓰기 및 비문 총 ${issues.length}건이 검출되었습니다.` };
           }
-          return { pass: true, msg: "5대 서술 영역 맞춤법, 띄어쓰기 및 문맥 호응 양호" };
+          return { pass: true, msg: "5대 서술 영역 맞춤법 및 문맥 호응 양호" };
         }
       },
       {
@@ -784,7 +769,7 @@
           const trimmed = line.trim();
           const compact = trimmed.replace(/\s+/g, '');
 
-          // 1) 인적·학적사항 표
+          // 인적·학적 표
           if (
             compact.includes("1.인적·학적사항") || compact.includes("1.인적학적사항") ||
             (compact.includes("학생정보") && compact.includes("성명") && compact.includes("주민등록번호")) ||
@@ -802,7 +787,7 @@
           }
           if ((trimmed.includes("대부중학교") && trimmed.includes("졸업")) || (trimmed.includes("대부고등학교") && trimmed.includes("입학")) || trimmed.includes("주민등록번호")) continue;
 
-          // 2) 봉사활동실적 표
+          // 봉사활동실적 표
           if (compact.includes("봉사활동실적") || (compact.includes("일자또는기간") && compact.includes("장소또는주관기관명"))) {
             isInsideVolunteerTable = true;
             continue;
@@ -816,7 +801,7 @@
           }
           if (trimmed.includes("(학교)대부고등학교") || trimmed.includes("(학교) 대부고등학교")) continue;
 
-          // 3) 수상경력 표
+          // 수상경력 표
           if (trimmed.includes("3. 수상경력") || (compact.includes("수상명") && (compact.includes("등급") || compact.includes("수여기관")))) {
             isInsideAwardTable = true;
             continue;
@@ -830,7 +815,7 @@
           }
           if (trimmed.includes("대부고등학교장") || /\b전교생\(\d+명\)/.test(trimmed)) continue;
 
-          // 4) 성적 일람표
+          // 성적 일람표
           if ((compact.includes("학기") && compact.includes("교과") && compact.includes("과목")) || (compact.includes("원점수") && compact.includes("성취도"))) {
             isInsideGradeTable = true;
             continue;
@@ -850,7 +835,7 @@
       });
     }
 
-    // 2. 순수 5대 서술형 영역 추출 (창체: 자율·동아리·진로, 교과세특, 행발)
+    // ★ 2. 순수 5대 서술 영역만 완벽 추출 (표지/표 제목 100% 원천 차단)
     function extractPureNarratives(filteredPages) {
       return filteredPages.map(p => {
         const lines = p.text.split('\n');
@@ -870,19 +855,26 @@
             inNarrative = true;
           }
 
-          // 표나 번호 섹션으로 바뀌면 일시 정지
-          if (compact.includes("출결상황") || compact.includes("자격증및인증") || compact.includes("수상경력") || compact.includes("이수학점합계")) {
+          // 표나 번호 섹션으로 바뀌면 서술 구간 종료
+          if (
+            compact.includes("출결상황") || compact.includes("자격증및인증") || 
+            compact.includes("수상경력") || compact.includes("이수학점합계") ||
+            compact.includes("학교생활세부사항기록부") || compact.includes("졸업대장번호")
+          ) {
             inNarrative = false;
           }
 
           if (inNarrative) {
-            narrativeLines.push(line);
+            // ★ 나이스 인쇄성 허위 공백 정규화: 문장부호 앞의 인쇄 공백 자동 제거 ("함 ." -> "함.")
+            let normalizedLine = line.replace(/\s+([.,!?:])/g, '$1');
+            narrativeLines.push(normalizedLine);
           }
         }
 
+        // 서술형 영역이 없는 페이지(예: 1페이지 표지/인적사항 등)는 완전히 빈 텍스트("")를 반환하여 오탐지 원천 차단!
         return {
           page: p.page,
-          text: narrativeLines.length > 0 ? narrativeLines.join('\n') : p.text
+          text: narrativeLines.join('\n')
         };
       });
     }
@@ -1074,7 +1066,6 @@
                       <span class="page-tag ${isBlue ? 'blue' : ''}">${iss.page}페이지</span>
                       <span>“...${highlighted}...”</span>
                     </div>
-                    <!-- 개별 라인 우측 전용 드롭다운 -->
                     <select class="item-select ${isBlue ? 'select-need-check' : 'select-need-fix'}" onchange="handleItemStatusChange(this)">
                       <option value="${isBlue ? '확인 필요' : '수정 필요'}" selected>${isBlue ? '확인 필요' : '수정 필요'}</option>
                       <option value="확인 완료">확인 완료</option>
