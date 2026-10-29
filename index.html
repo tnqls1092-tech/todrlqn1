@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2026학년도 2학기 학교생활기록부 점검 (영역별 필터링 지원)</title>
+  <title>2026학년도 2학기 학교생활기록부 점검 (전수 나열 & 꼬리말 예외 지원)</title>
   <!-- PDF.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
@@ -68,7 +68,7 @@
 
     /* 메인 레이아웃 */
     .container {
-      max-width: 1160px;
+      max-width: 1180px;
       margin: 24px auto 80px;
       padding: 0 20px;
       display: flex;
@@ -234,7 +234,7 @@
     .status-ok { background: #ecfdf5; color: #059669; }
     .status-wait { background: #f1f5f9; color: #64748b; }
 
-    /* 사용자 선택 드롭다운 */
+    /* 드롭다운 */
     .status-select {
       width: 100%;
       padding: 6px 10px;
@@ -245,42 +245,40 @@
       outline: none;
       transition: all 0.2s;
     }
-    .select-need-fix {
-      background-color: #fef2f2;
-      border: 1.5px solid #ef4444;
-      color: #dc2626;
-    }
-    .select-need-check {
-      background-color: #fffbeb;
-      border: 1.5px solid #f59e0b;
-      color: #b45309;
-    }
-    .select-fixed {
-      background-color: #eff6ff;
-      border: 1.5px solid #3b82f6;
-      color: #1d4ed8;
-    }
-    .select-done {
-      background-color: #ecfdf5;
-      border: 1.5px solid #10b981;
-      color: #047857;
-    }
+    .select-need-fix { background-color: #fef2f2; border: 1.5px solid #ef4444; color: #dc2626; }
+    .select-need-check { background-color: #fffbeb; border: 1.5px solid #f59e0b; color: #b45309; }
+    .select-fixed { background-color: #eff6ff; border: 1.5px solid #3b82f6; color: #1d4ed8; }
+    .select-done { background-color: #ecfdf5; border: 1.5px solid #10b981; color: #047857; }
 
-    /* 위치 및 문맥 박스 */
+    /* 위치 및 문맥 박스 (전체 나열 지원) */
     .detected-box {
-      margin-top: 8px;
+      margin-top: 10px;
       background: #fef2f2;
       border: 1px solid #fecaca;
       border-radius: 8px;
-      padding: 10px 14px;
+      padding: 12px 14px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
+      max-height: 480px; /* 너무 길어질 경우 스크롤 가능 */
+      overflow-y: auto;
+    }
+    .detected-count-badge {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #b91c1c;
+      margin-bottom: 2px;
     }
     .detected-item {
       font-size: 12.5px;
       color: #991b1b;
-      line-height: 1.5;
+      line-height: 1.55;
+      padding-bottom: 6px;
+      border-bottom: 1px dashed #fca5a5;
+    }
+    .detected-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
     }
     .page-tag {
       background: #dc2626;
@@ -299,25 +297,20 @@
       padding: 1px 4px;
       border-radius: 3px;
     }
-
-    @media (max-width: 768px) {
-      .summary-grid { grid-template-columns: repeat(2, 1fr); }
-      .td-name { width: 150px; }
-    }
   </style>
 </head>
 <body>
 
   <header class="navbar">
     <div class="logo">
-      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">영역별 예외 필터링 적용</span>
+      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">전수 나열 & 꼬리말/봉사 예외 필터</span>
     </div>
   </header>
 
   <main class="container">
 
     <div class="header-card">
-      <div class="badge-pill">2026학년도 2학기 · 학생부 정밀 검토</div>
+      <div class="badge-pill">2026학년도 2학기 · 학생부 전수 검토</div>
       <h2>2026학년도 2학기 학교생활기록부 점검 대시보드</h2>
       <div class="header-meta" id="fileMetaInfo">
         점검 대기 중 · 점검할 생활기록부 PDF 파일을 등록해 주세요.
@@ -329,7 +322,7 @@
       <input type="file" id="pdfInput" accept=".pdf, .txt" onchange="handleFile(event)">
       <div class="upload-icon">📄</div>
       <div class="upload-title" id="uploadTitle">생활기록부 PDF 파일을 업로드하세요</div>
-      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요.</div>
+      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요. (발견된 모든 오류 항목을 생략 없이 100% 나열합니다)</div>
       <div class="status-analyzing" id="loadingText">⏳ PDF 페이지별 텍스트 및 위치를 정밀 분석하고 있습니다...</div>
     </div>
 
@@ -370,13 +363,13 @@
     <!-- 테이블 박스 -->
     <div class="content-box">
       <div class="table-container">
-        <div class="section-title">2026학년도 기재요령 24대 항목별 검토 결과 및 조치 관리</div>
+        <div class="section-title">2026학년도 기재요령 24대 항목별 검토 결과 및 오류 전수 나열</div>
         <table>
           <thead>
             <tr>
               <th class="td-num">번호</th>
               <th class="td-name">검토 항목</th>
-              <th>검증 기준 및 실제 검출 내용</th>
+              <th>검증 기준 및 실제 검출 내용 (전체 나열)</th>
               <th class="td-status">판정 및 조치상태</th>
             </tr>
           </thead>
@@ -390,7 +383,7 @@
   </main>
 
   <script>
-    // 24대 점검 규칙 정의 (영역별 스마트 필터링 탑재)
+    // 24대 점검 규칙 정의 (생략 없이 전수 검사)
     const rules = [
       {
         id: 1,
@@ -400,7 +393,7 @@
           const targets = ['토익', 'TOEIC', '토플', 'TOEFL', '텝스', 'TEPS', 'KMO', '영재교육원', '국제기구', 'OECD', '올림픽', '유튜브', '인스타그램', '챗 GPT', 'ChatGPT', '엑셀', '한국전력공사', '통계청'];
           const issues = findKeywordLocations(filteredPages, targets, ['UN']);
           if (issues.length > 0) {
-            return { pass: false, issues: issues, msg: "금지 키워드 및 상호명이 검출되었습니다." };
+            return { pass: false, issues: issues, msg: `금지 키워드 및 상호명 총 ${issues.length}건이 검출되었습니다.` };
           }
           return { pass: true, msg: "사교육 유발 요인 및 금지 상호명 미검출" };
         }
@@ -408,15 +401,15 @@
       {
         id: 2,
         title: "고교블라인드 위반 여부",
-        req: "(고교블라인드) 학생 출신 고교를 알 수 있는 내용(학교명, 재단명, 학교 축제명, 학교 별칭 등) 기재 금지 (※ 인적·학적사항 및 3.수상경력 내용은 검증 제외)",
+        req: "(고교블라인드) 학생 출신 고교를 알 수 있는 내용(학교명, 재단명, 학교 축제명, 학교 별칭 등) 기재 금지 (※ 인적·학적, 수상경력, 봉사활동실적, 하단 꼬리말은 검증 제외)",
         check: function(filteredPages) {
           // '대부' 단어 및 고교 추정명 전수 검사
           const targets = ['대부', '고등학교'];
           const issues = findKeywordLocations(filteredPages, targets);
           if (issues.length > 0) {
-            return { pass: false, issues: issues, msg: "고교 블라인드 위반 단어('대부' 등)가 서술 영역에서 검출되었습니다." };
+            return { pass: false, issues: issues, msg: `고교 블라인드 위반 단어('대부' 등) 총 ${issues.length}건이 서술 영역에서 검출되었습니다.` };
           }
-          return { pass: true, msg: "고교명 및 블라인드 위반 표현 미검출" };
+          return { pass: true, msg: "서술 영역 내 고교명 및 블라인드 위반 표현 미검출" };
         }
       },
       {
@@ -427,7 +420,7 @@
           const targets = ['나는 ', '내가 ', '저의 ', '나의 '];
           const issues = findKeywordLocations(filteredPages, targets);
           if (issues.length > 0) {
-            return { pass: false, issues: issues, msg: "1인칭 주어 표현이 검출되었습니다. (3인칭 관찰자 시점 서술 필요)" };
+            return { pass: false, issues: issues, msg: `1인칭 주어 표현 총 ${issues.length}건이 검출되었습니다. (3인칭 관찰자 시점 서술 필요)` };
           }
           return { pass: true, msg: "1인칭 표현 없음 (적합)" };
         }
@@ -435,12 +428,12 @@
       {
         id: 4,
         title: "교사 미관찰 내용 기재 금지",
-        req: "아르바이트, 교외 봉사활동 등 교사가 직접 관찰할 수 없는 내용 배제",
+        req: "아르바이트, 교외 봉사활동 등 교사가 직접 관찰할 수 없는 내용 배제 (※ 봉사활동실적란 외 서술 영역 점검)",
         check: function(filteredPages) {
           const targets = ['아르바이트', '알바', '교외 봉사'];
           const issues = findKeywordLocations(filteredPages, targets);
           if (issues.length > 0) {
-            return { pass: false, issues: issues, msg: "교사 미관찰 내용이 검출되었습니다." };
+            return { pass: false, issues: issues, msg: `교사 미관찰 내용 총 ${issues.length}건이 검출되었습니다.` };
           }
           return { pass: true, msg: "교사 미관찰 활동 미기재 확인" };
         }
@@ -454,12 +447,12 @@
       {
         id: 6,
         title: "특수문자·문단구분 기호 제한",
-        req: "기재 가능: ' , . () / 기재 불가: ·(가운데점), ‘ ’, “ ”, ?, ! (※ 인적·학적사항 및 3.수상경력 내용은 검증 제외)",
+        req: "기재 가능: ' , . () / 기재 불가: ·(가운데점), ‘ ’, “ ”, ?, ! (※ 인적·학적, 수상경력, 봉사활동실적 제외)",
         check: function(filteredPages) {
           const targets = ['·', '‘', '’', '“', '”', '?', '!'];
           const issues = findKeywordLocations(filteredPages, targets);
           if (issues.length > 0) {
-            return { pass: false, issues: issues.slice(0, 4), msg: "기재 지양 특수문자가 서술 영역에서 검출되었습니다." };
+            return { pass: false, issues: issues, msg: `기재 지양 특수문자 총 ${issues.length}건이 서술 영역에서 검출되었습니다.` };
           }
           return { pass: true, msg: "허용 부호 외 특수문자 미검출" };
         }
@@ -472,7 +465,7 @@
           const targets = ['했다.', '입니다.', '하였다.', '있습니다.'];
           const issues = findKeywordLocations(filteredPages, targets);
           if (issues.length > 0) {
-            return { pass: false, issues: issues.slice(0, 3), msg: "비명사형 종결어미가 검출되었습니다." };
+            return { pass: false, issues: issues, msg: `비명사형 종결어미 총 ${issues.length}건이 검출되었습니다.` };
           }
           return { pass: true, msg: "명사형 종결어미 준수" };
         }
@@ -503,7 +496,7 @@
           const targets = ['대회'];
           const issues = findKeywordLocations(filteredPages, targets);
           if (issues.length > 0) {
-            return { pass: false, issues: issues, msg: "서술 영역에서 기재금지어 '대회' 단어가 검출되었습니다." };
+            return { pass: false, issues: issues, msg: `서술 영역에서 기재금지어 '대회' 단어 총 ${issues.length}건이 검출되었습니다.` };
           }
           return { pass: true, msg: "서술 영역 내 '대회' 단어 미사용 (적합)" };
         }
@@ -580,7 +573,7 @@
             }
           });
           if (issues.length > 0) {
-            return { pass: false, issues: issues, msg: "도서명 뒤 (저자) 형식 누락 가능성이 있습니다." };
+            return { pass: false, issues: issues, msg: `도서명 뒤 (저자) 형식 누락 가능성 ${issues.length}건이 있습니다.` };
           }
           return { pass: true, msg: "도서명(저자) 형식 규격 일치" };
         }
@@ -599,25 +592,48 @@
           const targets = ['불성실', '폭력적', '지각이 잦음'];
           const issues = findKeywordLocations(filteredPages, targets);
           if (issues.length > 0) {
-            return { pass: false, issues: issues, msg: "극단적 부정 표현이 검출되었습니다." };
+            return { pass: false, issues: issues, msg: `극단적 부정 표현 총 ${issues.length}건이 검출되었습니다.` };
           }
           return { pass: true, msg: "낙인성 부정 단독 서술 없음" };
         }
       }
     ];
 
-    // ★ 인적·학적사항 및 3.수상경력(표) 영역 자동 배제 정제 함수
+    // ★ 1. 꼬리말 제거 + 2. 수상경력 및 봉사활동실적 제외 전처리 함수
     function filterExcludedSections(pagesData) {
-      let isInsideAwardSection = false;
+      let isInsideExcludedSection = false;
 
       return pagesData.map(p => {
-        const lines = p.text.split('\n');
-        const validLines = [];
+        let lines = p.text.split('\n');
 
+        // 1) 꼬리말(Footer) 필터링: 페이지 하단에 배치된 나이스 기본 꼬리말 제거
+        // (하단 4줄 이내에서 '대부고등학교', '학교생활기록부', '페이지번호(ex: 1/5, - 1 -)', '출력일자' 패턴 제거)
+        const totalLines = lines.length;
+        lines = lines.filter((line, idx) => {
+          const trimmed = line.trim();
+          const isBottomLine = (totalLines - idx) <= 4; // 하단 4줄 이내 위치
+
+          if (isBottomLine) {
+            // 하단 꼬리말에 나오는 대부고등학교, 학교생활기록부, 페이지번호 등은 삭제
+            if (
+              trimmed.includes("대부고등학교") || 
+              trimmed.includes("대부고") ||
+              trimmed.includes("학교생활기록부") ||
+              /^\(?\s*\d+\s*[\/-]\s*\d+\s*\)?$/.test(trimmed) || // 1/5, (1/5)
+              /^-\s*\d+\s*-$/.test(trimmed)                     // - 1 -
+            ) {
+              return false; // 꼬리말 라인 제거
+            }
+          }
+          return true;
+        });
+
+        // 2) 인적·학적사항 + 수상경력 + 봉사활동실적 영역 통째로 제외
+        const validLines = [];
         for (let line of lines) {
           const trimmed = line.trim();
 
-          // 1) 인적·학적사항 영역 문구 필터링
+          // 인적사항, 학적사항 단독 라인 제외
           if (
             trimmed.includes("1. 인적사항") || 
             trimmed.includes("2. 학적사항") ||
@@ -627,23 +643,37 @@
             trimmed.includes("전입") ||
             trimmed.includes("졸업대장")
           ) {
-            continue; // 인적사항 라인 건너뛰기
-          }
-
-          // 2) 3. 수상경력 (표) 영역 감지 및 배제
-          if (trimmed.includes("3. 수상경력") || trimmed.includes("3.수상경력") || trimmed.includes("[수상경력]")) {
-            isInsideAwardSection = true;
             continue;
           }
 
-          // 다음 번호 항목(4. 자격증, 5. 출결 등)이 나오면 수상경력 영역 종료
-          if (isInsideAwardSection && (/^[4-9]\s*\./.test(trimmed) || trimmed.includes("4. 자격증") || trimmed.includes("4.자격증") || trimmed.includes("5. 출결상황"))) {
-            isInsideAwardSection = false;
+          // 제외 시작점 감지: 3.수상경력 or 봉사활동실적
+          if (
+            trimmed.includes("3. 수상경력") || 
+            trimmed.includes("3.수상경력") || 
+            trimmed.includes("[수상경력]") ||
+            trimmed.includes("봉사활동실적") ||
+            trimmed.includes("봉사활동 실적")
+          ) {
+            isInsideExcludedSection = true;
+            continue;
           }
 
-          // 수상경력 표 내부 행인 경우 건너뛰기
-          if (isInsideAwardSection) {
-            continue;
+          // 제외 종료점 감지: 다음 주요 항목 번호(4.자격증, 6.진로 등)나 창체 세부 항목이 나오면 정상 복귀
+          if (isInsideExcludedSection && (
+            /^[4-9]\s*\./.test(trimmed) || 
+            trimmed.includes("4. 자격증") || 
+            trimmed.includes("5. 출결상황") ||
+            trimmed.includes("6. 창의적") ||
+            trimmed.includes("7. 교과학습") ||
+            trimmed.includes("자율활동") ||
+            trimmed.includes("동아리활동") ||
+            trimmed.includes("진로활동")
+          )) {
+            isInsideExcludedSection = false;
+          }
+
+          if (isInsideExcludedSection) {
+            continue; // 제외 구간 내부 건너뛰기
           }
 
           validLines.push(line);
@@ -656,7 +686,7 @@
       });
     }
 
-    // 키워드 위치 탐색 헬퍼 함수
+    // ★ 3. 키워드 위치 탐색 헬퍼 함수 (제한 없이 100% 전수 나열)
     function findKeywordLocations(pages, targets, strictWords = []) {
       const results = [];
       pages.forEach(p => {
@@ -679,7 +709,9 @@
           });
         });
       });
-      return results.slice(0, 5);
+
+      // ★ 생략(slice) 없이 검출된 모든 결과를 전수 반환!
+      return results;
     }
 
     // 초기 테이블 구성
@@ -701,7 +733,7 @@
       });
     }
 
-    // 파일 업로드 핸들러
+    // 파일 로드 핸들러
     async function handleFile(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -720,7 +752,19 @@
           for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
             const page = await pdf.getPage(pageNum);
             const textContent = await page.getTextContent();
-            const pageText = textContent.items.map(item => item.str).join(' ');
+            
+            // Y좌표 기준 정렬 후 줄바꿈을 보존하여 결합
+            const items = textContent.items;
+            let pageText = "";
+            let lastY = null;
+            for (let item of items) {
+              if (lastY !== null && Math.abs(item.transform[5] - lastY) > 5) {
+                pageText += "\n";
+              }
+              pageText += item.str + " ";
+              lastY = item.transform[5];
+            }
+
             rawPagesData.push({ page: pageNum, text: pageText });
           }
         } else {
@@ -728,7 +772,7 @@
           rawPagesData.push({ page: 1, text: text });
         }
 
-        // 인적·학적사항 및 수상경력(표) 영역 필터링 실행
+        // 꼬리말, 수상경력, 봉사활동실적 제외 전처리 실행
         const filteredPages = filterExcludedSections(rawPagesData);
 
         runInspection(filteredPages, file.name);
@@ -741,7 +785,7 @@
       }
     }
 
-    // 드롭다운 상태 변경 이벤트 처리
+    // 드롭다운 변경 처리
     function handleStatusChange(selectElement) {
       const val = selectElement.value;
       selectElement.className = "status-select";
@@ -756,7 +800,7 @@
       }
     }
 
-    // 24개 검사 실행 및 렌더링
+    // 24개 검사 실행 및 전수 나열 렌더링
     function runInspection(filteredPages, filename) {
       const tbody = document.getElementById("checklistBody");
       tbody.innerHTML = "";
@@ -769,10 +813,12 @@
         const result = rule.check(filteredPages);
         if (result.pass) passCount++; else failCount++;
 
+        // ★ 검출된 모든 문장 전수 나열
         let issuesHtml = "";
         if (!result.pass && result.issues && result.issues.length > 0) {
           issuesHtml = `
             <div class="detected-box">
+              <div class="detected-count-badge">총 ${result.issues.length}건의 수정 대상 검출 (전체 목록) :</div>
               ${result.issues.map(iss => {
                 const highlighted = iss.snippet.replace(
                   new RegExp(iss.word, 'g'), 
@@ -821,7 +867,7 @@
         tbody.appendChild(tr);
       });
 
-      // 요약 수치 갱신
+      // 수치 갱신
       document.getElementById("statTotal").innerHTML = `${total}<span>개</span>`;
       document.getElementById("statPass").innerHTML = `${passCount}<span>개</span>`;
       document.getElementById("statFail").innerHTML = `${failCount}<span>건</span>`;
