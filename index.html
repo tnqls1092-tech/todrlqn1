@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2026학년도 2학기 학교생활기록부 점검 (수상경력 표 완벽 제외)</title>
+  <title>2026학년도 2학기 학교생활기록부 점검 (인적·학적 & 봉사 표 예외 완료)</title>
   <!-- PDF.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
@@ -294,7 +294,7 @@
 
   <header class="navbar">
     <div class="logo">
-      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">수상경력 표 완전 배제 적용</span>
+      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">인적·학적 & 봉사 표 제외 적용</span>
     </div>
   </header>
 
@@ -313,7 +313,7 @@
       <input type="file" id="pdfInput" accept=".pdf, .txt" onchange="handleFile(event)">
       <div class="upload-icon">📄</div>
       <div class="upload-title" id="uploadTitle">생활기록부 PDF 파일을 업로드하세요</div>
-      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요. (수상경력 표, 성적표, 하단 꼬리말은 자동 제외됩니다)</div>
+      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요. (인적·학적 표, 봉사활동실적 표, 성적표, 수상경력 표는 자동 제외됩니다)</div>
       <div class="status-analyzing" id="loadingText">⏳ PDF 페이지별 텍스트 및 위치를 정밀 분석하고 있습니다...</div>
     </div>
 
@@ -392,7 +392,7 @@
       {
         id: 2,
         title: "고교블라인드 위반 여부",
-        req: "(고교블라인드) 학생 출신 고교를 알 수 있는 내용(학교명, 재단명, 학교 축제명, 학교 별칭 등) 기재 금지 (※ 인적·학적, 수상, 봉사, 성적표, 하단 꼬리말 제외)",
+        req: "(고교블라인드) 학생 출신 고교를 알 수 있는 내용(학교명, 재단명, 학교 축제명, 학교 별칭 등) 기재 금지 (※ 인적·학적 표, 봉사 표, 수상 표, 성적표, 하단 꼬리말 제외)",
         check: function(filteredPages) {
           const targets = ['대부', '고등학교'];
           const issues = findKeywordLocations(filteredPages, targets);
@@ -418,7 +418,7 @@
       {
         id: 4,
         title: "교사 미관찰 내용 기재 금지",
-        req: "아르바이트, 교외 봉사활동 등 교사가 직접 관찰할 수 없는 내용 배제",
+        req: "아르바이트, 교외 봉사활동 등 교사가 직접 관찰할 수 없는 내용 배제 (※ 봉사활동실적란 외 서술 영역 점검)",
         check: function(filteredPages) {
           const targets = ['아르바이트', '알바', '교외 봉사'];
           const issues = findKeywordLocations(filteredPages, targets);
@@ -437,7 +437,7 @@
       {
         id: 6,
         title: "특수문자·문단구분 기호 제한",
-        req: "기재 가능: ' , . () / 기재 불가: ·(가운데점), ‘ ’, “ ”, ?, ! (※ 성적표 및 인적·학적 제외)",
+        req: "기재 가능: ' , . () / 기재 불가: ·(가운데점), ‘ ’, “ ”, ?, ! (※ 성적표, 인적·학적 표, 수상 표 제외)",
         check: function(filteredPages) {
           const targets = ['·', '‘', '’', '“', '”', '?', '!'];
           const issues = findKeywordLocations(filteredPages, targets);
@@ -589,7 +589,6 @@
       }
     ];
 
-    // 나이스 출력 워터마크 정제
     function cleanNICEWatermarks(text) {
       return text
         .replace(/[대\s*부\s*고\s*등\s*학\s*교]*\s*\/\s*\d{4}\.\d{1,2}\.\d{1,2}[^/\n]*\/[\d.*]+\/[가-힣\w\s]+/g, ' ')
@@ -598,10 +597,12 @@
         .replace(/[\d.*]{5,}\/[가-힣]+/g, ' ');
     }
 
-    // ★ [핵심] 수상경력 표 + 성적 일람표 + 인적·학적 + 봉사활동실적 제외 전처리
+    // ★ [핵심] 인적·학적사항 표 + 봉사활동실적 표 + 수상경력 표 + 성적표 완벽 제외 전처리
     function filterExcludedSections(pagesData) {
-      let isInsideAwardTable = false; // 수상경력 표 구간
-      let isInsideGradeTable = false; // 성적 일람표 구간
+      let isInsidePersonalTable = false; // 1. 인적·학적사항 표
+      let isInsideVolunteerTable = false;// 봉사활동실적 표
+      let isInsideAwardTable = false;    // 3. 수상경력 표
+      let isInsideGradeTable = false;    // 성적 일람표
 
       return pagesData.map(p => {
         const cleanedText = cleanNICEWatermarks(p.text);
@@ -610,27 +611,86 @@
 
         for (let line of lines) {
           const trimmed = line.trim();
-          // 공백을 모두 제거한 압축 문자열 (표 헤더 감지용)
           const compact = trimmed.replace(/\s+/g, '');
 
-          // 1) 인적사항, 학적사항 건너뛰기
+          // 1) ★ [인적·학적사항 표 감지]
           if (
-            trimmed.includes("1. 인적사항") || 
-            trimmed.includes("2. 학적사항") ||
+            compact.includes("1.인적·학적사항") ||
+            compact.includes("1.인적학적사항") ||
+            compact.includes("인적·학적사항") ||
+            (compact.includes("학생정보") && compact.includes("성명") && compact.includes("주민등록번호")) ||
+            (compact.includes("학적사항") && compact.includes("졸업") && compact.includes("입학"))
+          ) {
+            isInsidePersonalTable = true;
+            continue;
+          }
+
+          // 인적·학적 표 종료 감지 (다음 번호 항목 시작 시 종료)
+          if (isInsidePersonalTable) {
+            if (
+              /^[2-9]\s*\./.test(trimmed) ||
+              trimmed.includes("2. 출결상황") ||
+              trimmed.includes("3. 수상경력") ||
+              trimmed.includes("출결상황")
+            ) {
+              isInsidePersonalTable = false;
+            } else {
+              continue; // 인적·학적 표 내부 건너뛰기
+            }
+          }
+
+          // 인적·학적 개별 행 안전장치 (졸업/입학 등)
+          if (
+            (trimmed.includes("대부중학교") && trimmed.includes("졸업")) ||
+            (trimmed.includes("대부고등학교") && trimmed.includes("입학")) ||
             trimmed.includes("주민등록번호") ||
-            trimmed.includes("생년월일") ||
-            trimmed.includes("입학") ||
-            trimmed.includes("전입") ||
             trimmed.includes("졸업대장")
           ) {
             continue;
           }
 
-          // 2) ★ [수상경력 표 감지 강화] 대제목 또는 다음 페이지 반복 헤더 완벽 감지!
+          // 2) ★ [봉사활동실적 표 감지]
+          if (
+            compact.includes("봉사활동실적") ||
+            compact.includes("봉사활동누계") ||
+            (compact.includes("일자또는기간") && compact.includes("장소또는주관기관명")) ||
+            (compact.includes("활동내용") && compact.includes("누계시간"))
+          ) {
+            isInsideVolunteerTable = true;
+            continue;
+          }
+
+          // 봉사활동실적 표 종료 감지 (다음 항목 번호 or 교과 세특 시작 시 종료)
+          if (isInsideVolunteerTable) {
+            if (
+              /^[4-9]\s*\./.test(trimmed) ||
+              trimmed.includes("5. 교과학습") ||
+              trimmed.includes("6. 교과학습") ||
+              trimmed.includes("교과학습발달상황") ||
+              trimmed.includes("자율활동") ||
+              trimmed.includes("동아리활동") ||
+              trimmed.includes("진로활동") ||
+              trimmed.includes("세부능력 및 특기사항")
+            ) {
+              isInsideVolunteerTable = false;
+            } else {
+              continue; // 봉사활동실적 표 내부 건너뛰기
+            }
+          }
+
+          // 봉사활동실적 개별 행 안전장치: '(학교)대부고등학교' 또는 날짜+장소+시간 패턴
+          if (
+            trimmed.includes("(학교)대부고등학교") ||
+            trimmed.includes("(학교) 대부고등학교") ||
+            (/\d{4}\.\d{2}\.\d{2}\./.test(trimmed) && trimmed.includes("대부고등학교") && (trimmed.includes("시간") || /\b\d+\s+\d+\b/.test(trimmed)))
+          ) {
+            continue;
+          }
+
+          // 3) 수상경력 표 감지
           if (
             trimmed.includes("3. 수상경력") || 
             trimmed.includes("3.수상경력") ||
-            // 사진처럼 페이지가 넘어가면서 '수상명 등급(위) 수상연월일 수여기관 참가대상' 표 헤더가 반복될 때
             (compact.includes("수상명") && (compact.includes("등급") || compact.includes("수여기관") || compact.includes("참가대상") || compact.includes("수상연월일"))) ||
             (compact.includes("학기") && compact.includes("수상명"))
           ) {
@@ -638,7 +698,6 @@
             continue;
           }
 
-          // 수상경력 표 종료 감지 (4. 자격증, 5. 출결 등 다음 항목이 시작되면 종료)
           if (isInsideAwardTable) {
             if (
               /^[4-9]\s*\./.test(trimmed) || 
@@ -651,24 +710,16 @@
             ) {
               isInsideAwardTable = false;
             } else {
-              // 수상경력 표 내부 행은 전부 무시 (건너뜀)
               continue;
             }
           }
 
-          // ★ [추가 안전장치] 혹시라도 표 상태를 벗어났더라도 수상경력 표 데이터 행 형태라면 무조건 제거!
-          // (예: 대부고등학교장, 전교생(62명), 장려상(3위), 최우수상(1위) 등이 포함된 라인)
           if (
             trimmed.includes("대부고등학교장") ||
             /\b전교생\(\d+명\)/.test(trimmed) ||
             /\b수강자\b/.test(trimmed) && trimmed.includes("202") ||
             /\b(최우수상|우수상|장려상|표창장)\(\d+위?\)/.test(trimmed)
           ) {
-            continue; // 수상경력 데이터 라인 삭제
-          }
-
-          // 3) 봉사활동실적 제외
-          if (trimmed.includes("봉사활동실적") || trimmed.includes("봉사활동 실적")) {
             continue;
           }
 
@@ -682,7 +733,6 @@
             continue;
           }
 
-          // 성적 일람표 종료 감지 (세특 서술 시작 시 복귀)
           if (isInsideGradeTable) {
             if (
               trimmed.includes("과목별 세부능력") || 
@@ -693,7 +743,7 @@
             ) {
               isInsideGradeTable = false;
             } else {
-              continue; // 성적표 내부 라인 무시
+              continue;
             }
           }
 
@@ -717,12 +767,17 @@
           const cleanSentence = sentence.trim();
           if (!cleanSentence || cleanSentence.length < 2) return;
 
-          // 꼬리말 잔재 재확인 필터
+          // 꼬리말 잔재 최종 필터
           if (cleanSentence.includes("10.131.") || (cleanSentence.includes("반") && cleanSentence.includes("번호") && cleanSentence.includes("성명"))) {
             return;
           }
-          // 수상경력 잔재 최종 필터 (수여기관명 등)
-          if (cleanSentence.includes("대부고등학교장") || cleanSentence.includes("수상연월일")) {
+          // 인적·학적 및 봉사활동 잔재 최종 필터
+          if (
+            cleanSentence.includes("(학교)대부고등학교") ||
+            cleanSentence.includes("대부중학교 제3학년") ||
+            cleanSentence.includes("대부고등학교 제1학년") ||
+            cleanSentence.includes("대부고등학교장")
+          ) {
             return;
           }
 
@@ -766,25 +821,52 @@
       const file = event.target.files[0];
       if (!file) return;
 
-      document.getElementById("uploadTitle").innerText = `📄 점검 진행 중: ${file.name}`;
-      document.getElementById("loadingText").style.display = "block";
-      document.getElementById("fileMetaInfo").innerText = `분석 대상: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      const uploadTitle = document.getElementById("uploadTitle");
+      const loadingText = document.getElementById("loadingText");
+      const fileMetaInfo = document.getElementById("fileMetaInfo");
+
+      uploadTitle.innerText = `📄 점검 진행 중: ${file.name}`;
+      loadingText.style.display = "block";
+      loadingText.innerText = "⏳ PDF 문서를 초기화하고 있습니다...";
+      fileMetaInfo.innerText = `분석 대상: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
 
       const rawPagesData = [];
 
       try {
         if (file.name.toLowerCase().endsWith('.pdf')) {
           const arrayBuffer = await file.arrayBuffer();
-          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-          
-          for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+
+          const loadingTask = pdfjsLib.getDocument({
+            data: arrayBuffer,
+            cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
+            cMapPacked: true,
+            standardFontDataUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/standard_fonts/'
+          });
+
+          loadingTask.onPassword = function(callback, reason) {
+            let pwd = prompt("나이스 보안 비밀번호가 걸려있는 PDF 문서입니다.\n비밀번호(예: 생년월일 등)를 입력해 주세요:");
+            if (pwd) {
+              callback(pwd);
+            } else {
+              throw new Error("PASSWORD_CANCELLED");
+            }
+          };
+
+          const pdf = await loadingTask.promise;
+          const totalPages = pdf.numPages;
+
+          for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+            if (pageNum % 10 === 0 || pageNum === totalPages) {
+              loadingText.innerText = `⏳ PDF 정밀 분석 중... (${pageNum} / ${totalPages} 페이지 완료)`;
+              await new Promise(r => setTimeout(r, 1));
+            }
+
             const page = await pdf.getPage(pageNum);
-            const textContent = await page.getTextContent();
-            
             const viewport = page.getViewport({ scale: 1.0 });
             const pageHeight = viewport.height;
             const footerCutoff = Math.max(80, pageHeight * 0.10);
 
+            const textContent = await page.getTextContent();
             const items = textContent.items;
             let pageText = "";
             let lastY = null;
@@ -801,22 +883,28 @@
             }
 
             rawPagesData.push({ page: pageNum, text: pageText });
+            page.cleanup();
           }
         } else {
           const text = await file.text();
           rawPagesData.push({ page: 1, text: text });
         }
 
-        // 수상경력 표 + 성적표 + 꼬리말 완벽 제외 전처리
+        loadingText.innerText = "🔍 24대 항목 전수 검사를 실행하고 있습니다...";
         const filteredPages = filterExcludedSections(rawPagesData);
-
         runInspection(filteredPages, file.name);
 
       } catch (err) {
-        alert("PDF 파일을 읽는 중 오류가 발생했습니다. 정상 파일인지 확인해 주세요.");
-        console.error(err);
+        console.error("PDF Parsing Error:", err);
+        if (err.message === "PASSWORD_CANCELLED") {
+          alert("비밀번호 입력이 취소되어 PDF 점검을 진행할 수 없습니다.");
+        } else if (err.name === "PasswordException") {
+          alert("보안 암호가 일치하지 않습니다. 파일 암호를 확인해 주세요.");
+        } else {
+          alert(`PDF 문서를 처리하는 중 오류가 발생했습니다.\n\n[상세 에러 내용]: ${err.message || err}`);
+        }
       } finally {
-        document.getElementById("loadingText").style.display = "none";
+        loadingText.style.display = "none";
       }
     }
 
