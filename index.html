@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2026학년도 2학기 학교생활기록부 점검 (인적·학적 & 봉사 표 예외 완료)</title>
+  <title>2026학년도 2학기 학교생활기록부 점검 (24대 항목 전수 출력)</title>
   <!-- PDF.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
@@ -294,7 +294,7 @@
 
   <header class="navbar">
     <div class="logo">
-      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">인적·학적 & 봉사 표 제외 적용</span>
+      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">24대 전 항목 완벽 출력</span>
     </div>
   </header>
 
@@ -313,7 +313,7 @@
       <input type="file" id="pdfInput" accept=".pdf, .txt" onchange="handleFile(event)">
       <div class="upload-icon">📄</div>
       <div class="upload-title" id="uploadTitle">생활기록부 PDF 파일을 업로드하세요</div>
-      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요. (인적·학적 표, 봉사활동실적 표, 성적표, 수상경력 표는 자동 제외됩니다)</div>
+      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요. (400페이지 이상 대용량 완벽 대응)</div>
       <div class="status-analyzing" id="loadingText">⏳ PDF 페이지별 텍스트 및 위치를 정밀 분석하고 있습니다...</div>
     </div>
 
@@ -374,7 +374,12 @@
   </main>
 
   <script>
-    // 24대 점검 규칙 정의
+    // ★ 정규식 특수문자 안전 이스케이프 함수 (물음표, 느낌표, 괄호 등 치환 에러 원천 방지)
+    function escapeRegExp(string) {
+      return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    // 24대 점검 규칙 정의 (1번부터 24번까지 누락 없음)
     const rules = [
       {
         id: 1,
@@ -597,12 +602,11 @@
         .replace(/[\d.*]{5,}\/[가-힣]+/g, ' ');
     }
 
-    // ★ [핵심] 인적·학적사항 표 + 봉사활동실적 표 + 수상경력 표 + 성적표 완벽 제외 전처리
     function filterExcludedSections(pagesData) {
-      let isInsidePersonalTable = false; // 1. 인적·학적사항 표
-      let isInsideVolunteerTable = false;// 봉사활동실적 표
-      let isInsideAwardTable = false;    // 3. 수상경력 표
-      let isInsideGradeTable = false;    // 성적 일람표
+      let isInsidePersonalTable = false;
+      let isInsideVolunteerTable = false;
+      let isInsideAwardTable = false;
+      let isInsideGradeTable = false;
 
       return pagesData.map(p => {
         const cleanedText = cleanNICEWatermarks(p.text);
@@ -613,7 +617,7 @@
           const trimmed = line.trim();
           const compact = trimmed.replace(/\s+/g, '');
 
-          // 1) ★ [인적·학적사항 표 감지]
+          // 1) 인적·학적사항 표 감지
           if (
             compact.includes("1.인적·학적사항") ||
             compact.includes("1.인적학적사항") ||
@@ -625,7 +629,6 @@
             continue;
           }
 
-          // 인적·학적 표 종료 감지 (다음 번호 항목 시작 시 종료)
           if (isInsidePersonalTable) {
             if (
               /^[2-9]\s*\./.test(trimmed) ||
@@ -635,11 +638,10 @@
             ) {
               isInsidePersonalTable = false;
             } else {
-              continue; // 인적·학적 표 내부 건너뛰기
+              continue;
             }
           }
 
-          // 인적·학적 개별 행 안전장치 (졸업/입학 등)
           if (
             (trimmed.includes("대부중학교") && trimmed.includes("졸업")) ||
             (trimmed.includes("대부고등학교") && trimmed.includes("입학")) ||
@@ -649,7 +651,7 @@
             continue;
           }
 
-          // 2) ★ [봉사활동실적 표 감지]
+          // 2) 봉사활동실적 표 감지
           if (
             compact.includes("봉사활동실적") ||
             compact.includes("봉사활동누계") ||
@@ -660,7 +662,6 @@
             continue;
           }
 
-          // 봉사활동실적 표 종료 감지 (다음 항목 번호 or 교과 세특 시작 시 종료)
           if (isInsideVolunteerTable) {
             if (
               /^[4-9]\s*\./.test(trimmed) ||
@@ -674,11 +675,10 @@
             ) {
               isInsideVolunteerTable = false;
             } else {
-              continue; // 봉사활동실적 표 내부 건너뛰기
+              continue;
             }
           }
 
-          // 봉사활동실적 개별 행 안전장치: '(학교)대부고등학교' 또는 날짜+장소+시간 패턴
           if (
             trimmed.includes("(학교)대부고등학교") ||
             trimmed.includes("(학교) 대부고등학교") ||
@@ -723,7 +723,7 @@
             continue;
           }
 
-          // 4) 성적 일람표 시작 감지
+          // 4) 성적 일람표 감지
           if (
             (compact.includes("학기") && compact.includes("교과") && compact.includes("과목")) ||
             (compact.includes("원점수") && compact.includes("성취도")) ||
@@ -757,7 +757,6 @@
       });
     }
 
-    // 문장 분할 및 전수 나열 헬퍼
     function findKeywordLocations(pages, targets, strictWords = []) {
       const results = [];
       pages.forEach(p => {
@@ -767,11 +766,9 @@
           const cleanSentence = sentence.trim();
           if (!cleanSentence || cleanSentence.length < 2) return;
 
-          // 꼬리말 잔재 최종 필터
           if (cleanSentence.includes("10.131.") || (cleanSentence.includes("반") && cleanSentence.includes("번호") && cleanSentence.includes("성명"))) {
             return;
           }
-          // 인적·학적 및 봉사활동 잔재 최종 필터
           if (
             cleanSentence.includes("(학교)대부고등학교") ||
             cleanSentence.includes("대부중학교 제3학년") ||
@@ -788,7 +785,7 @@
           });
 
           strictWords.forEach(sw => {
-            const regex = new RegExp(`(^|[^a-zA-Z가-힣])${sw}([^a-zA-Z가-힣]|$)`);
+            const regex = new RegExp(`(^|[^a-zA-Z가-힣])${escapeRegExp(sw)}([^a-zA-Z가-힣]|$)`);
             if (regex.test(cleanSentence)) {
               results.push({ page: p.page, word: sw, snippet: cleanSentence });
             }
@@ -922,6 +919,7 @@
       }
     }
 
+    // 24개 검사 실행 및 렌더링
     function runInspection(filteredPages, filename) {
       const tbody = document.getElementById("checklistBody");
       tbody.innerHTML = "";
@@ -940,8 +938,10 @@
             <div class="detected-box">
               <div class="detected-count-badge">총 ${result.issues.length}건의 수정 대상 검출 (전체 목록) :</div>
               ${result.issues.map(iss => {
+                // ★ [핵심 버그 수정] escapeRegExp 적용으로 ?, ! 등 특수문자 치환 시 에러 원천 차단!
+                const safeWord = escapeRegExp(iss.word);
                 const highlighted = iss.snippet.replace(
-                  new RegExp(iss.word, 'g'), 
+                  new RegExp(safeWord, 'g'), 
                   `<span class="highlight-word">${iss.word}</span>`
                 );
                 return `
@@ -987,6 +987,7 @@
         tbody.appendChild(tr);
       });
 
+      // 수치 갱신 (항상 24개 기준)
       document.getElementById("statTotal").innerHTML = `${total}<span>개</span>`;
       document.getElementById("statPass").innerHTML = `${passCount}<span>개</span>`;
       document.getElementById("statFail").innerHTML = `${failCount}<span>건</span>`;
