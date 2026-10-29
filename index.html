@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2026학년도 2학기 학교생활기록부 점검 (완전한 문장 전체 출력)</title>
+  <title>2026학년도 2학기 학교생활기록부 점검 (날짜 규격 정밀 검증 & 3D·CEO·AI 예외)</title>
   <!-- PDF.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
@@ -66,7 +66,7 @@
     }
 
     .container {
-      max-width: 1200px;
+      max-width: 1220px;
       margin: 24px auto 80px;
       padding: 0 20px;
       display: flex;
@@ -214,7 +214,7 @@
       font-weight: 600;
     }
     .td-num { width: 45px; text-align: center; color: var(--text-muted); font-weight: 700; }
-    .td-name { width: 230px; font-weight: 600; color: #1e293b; }
+    .td-name { width: 240px; font-weight: 600; color: #1e293b; }
     .td-status { width: 100px; text-align: center; }
 
     .status-tag {
@@ -275,7 +275,7 @@
       font-size: 13px;
       color: #7f1d1d;
       line-height: 1.65;
-      word-break: keep-all; /* 한글 단어 끊김 방지 */
+      word-break: keep-all;
     }
     .detected-box.double-check-box .detected-text {
       color: #1e40af;
@@ -324,7 +324,7 @@
 
   <header class="navbar">
     <div class="logo">
-      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">문장 전체(Full-Sentence) 출력 지원</span>
+      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">날짜 온점 규격 & 3D·CEO·AI 예외 적용</span>
     </div>
   </header>
 
@@ -343,7 +343,7 @@
       <input type="file" id="pdfInput" accept=".pdf, .txt" onchange="handleFile(event)">
       <div class="upload-icon">📄</div>
       <div class="upload-title" id="uploadTitle">생활기록부 PDF 파일을 업로드하세요</div>
-      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요. (검출 시 주어부터 서술어까지 문장 전체를 온전하게 표시합니다)</div>
+      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요. (날짜 규격 분리 검증 및 3D/CEO/AI 허용 적용)</div>
       <div class="status-analyzing" id="loadingText">⏳ PDF 페이지별 텍스트 및 위치를 정밀 분석하고 있습니다...</div>
     </div>
 
@@ -356,7 +356,7 @@
           <span class="alert-badge" id="alertBadge">파일 대기 중</span>
         </div>
         <div class="alert-desc" id="reportSummary">
-          파일을 업로드하면 <strong>점검할 항목 24개 중 24개를 점검</strong>하고, <strong>수정사항 및 더블체크 항목 개수</strong>를 즉시 분석해 안내합니다.
+          파일을 업로드하면 <strong>점검할 항목 25개 중 25개를 점검</strong>하고, <strong>수정사항 및 더블체크 항목 개수</strong>를 즉시 분석해 안내합니다.
         </div>
       </div>
     </div>
@@ -365,7 +365,7 @@
     <div class="summary-grid">
       <div class="summary-card">
         <div class="label">점검 대상 항목</div>
-        <div class="value val-total" id="statTotal">24<span>개</span></div>
+        <div class="value val-total" id="statTotal">25<span>개</span></div>
       </div>
       <div class="summary-card">
         <div class="label">적합 (이상 없음)</div>
@@ -377,14 +377,14 @@
       </div>
       <div class="summary-card">
         <div class="label">검토 대기</div>
-        <div class="value val-warning" id="statPending">24<span>건</span></div>
+        <div class="value val-warning" id="statPending">25<span>건</span></div>
       </div>
     </div>
 
     <!-- 테이블 박스 -->
     <div class="content-box">
       <div class="table-container">
-        <div class="section-title">2026학년도 기재요령 24대 항목별 검토 결과 및 개별 조치 관리</div>
+        <div class="section-title">2026학년도 기재요령 25대 항목별 검토 결과 및 개별 조치 관리</div>
         <table>
           <thead>
             <tr>
@@ -408,7 +408,7 @@
       return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
-    // 24대 점검 규칙 정의
+    // 25대 점검 규칙 정의 (요청사항 1, 2번 완벽 반영)
     const rules = [
       {
         id: 1,
@@ -470,23 +470,27 @@
       {
         id: 5,
         title: "한글 입력 원칙 (영문 표현 점검)",
-        req: "학교생활기록부 문자는 한글 입력 원칙. 서술형 항목 내 모든 영문 표현(단독 알파벳 x, y 포함)은 부득이한 경우 외 한글 표기 여부 확인을 위해 전수 표시 (※ 서식제목 '학교생활기록부II'의 II는 제외)",
+        req: "학교생활기록부 문자는 한글 입력 원칙. 서술형 항목 내 모든 영문 표현은 부득이한 경우 외 한글 표기 여부 확인을 위해 전수 표시 (※ 단, 3D, CEO, AI 및 서식명 II는 허용 예외)",
         check: function(filteredPages, narrativePages) {
+          // ★ 1번 요청 반영: 3D, CEO, AI, II 허용 제외 처리
           const issues = [];
+          const allowedEnglish = ['3D', '3d', 'CEO', 'ceo', 'AI', 'ai', 'II', 'ii'];
+
           narrativePages.forEach(p => {
             p.sentences.forEach(sentence => {
               const clean = sentence.trim();
               if (!clean || clean.length < 2) return;
-              if (clean.includes("10.131.") || clean.includes("학교생활세부사항기록부") || clean.includes("학교생활기록부II") || clean.includes("학교생활기록부 II")) return;
+              if (clean.includes("10.131.") || clean.includes("학교생활세부사항기록부") || clean.includes("학교생활기록부II")) return;
 
-              const englishWords = clean.match(/\b[A-Za-z]+\b/g);
-              if (englishWords) {
-                const filteredEng = englishWords.filter(w => w !== 'II' && w !== 'ii');
-                if (filteredEng.length > 0) {
+              // 알파벳이나 영숫자 결합(3D 포함) 검색
+              const words = clean.match(/\b([0-9]*[A-Za-z]+[0-9]*)\b/g);
+              if (words) {
+                const filtered = words.filter(w => !allowedEnglish.includes(w));
+                if (filtered.length > 0) {
                   issues.push({
                     page: p.page,
-                    word: filteredEng[0],
-                    snippet: clean // 문장 전체 반환
+                    word: filtered[0],
+                    snippet: clean
                   });
                 }
               }
@@ -494,9 +498,9 @@
           });
 
           if (issues.length > 0) {
-            return { pass: false, issues: issues, msg: `서술형 항목 내 영문 표현(단독 알파벳 포함) 총 ${issues.length}건이 검출되었습니다. (수식 x, 공식 명칭 외 한글 표기 권장)` };
+            return { pass: false, issues: issues, msg: `서술형 항목 내 규정 외 영문 표현 총 ${issues.length}건이 검출되었습니다. (3D, CEO, AI 제외 한글 표기 권장)` };
           }
-          return { pass: true, msg: "불필요한 영문 표현 미검출 (한글 표기 준수)" };
+          return { pass: true, msg: "불필요한 영문 표현 미검출 (3D, CEO, AI 허용 예외 준수)" };
         }
       },
       {
@@ -514,9 +518,10 @@
       },
       {
         id: 7,
-        title: "명사형 종결어미 및 온점 마침표 검증",
-        req: "창체 3개 영역(자율·동아리·진로), 과목별 세특, 행동특성 및 종합의견 서술문은 반드시 명사형 종결어미(~함., ~임., ~됨.) 및 끝 온점(.) 준수 필수 (줄바꿈 문장 자동 복원 적용)",
+        title: "명사형 종결어미 및 문장 마침표 검증",
+        req: "창체 3개 영역, 세특, 행발 서술문은 주어부터 서술어까지 완결된 문장 단위로 검사하며, 명사형 종결어미(~함., ~임., ~됨.) 및 끝 온점(.) 준수 필수 (※ 괄호 날짜 제외)",
         check: function(filteredPages, narrativePages) {
+          // ★ 2번 요청 반영: 괄호 안의 날짜(2026.10.29.) 등에 현혹되지 않고, 순수 문장 끝 종결어미와 마침표만 정밀 검사!
           const issues = [];
           narrativePages.forEach(p => {
             p.sentences.forEach(sentence => {
@@ -524,12 +529,12 @@
               if (!clean || clean.length < 10) return;
               if (clean.includes("10.131.") || clean.includes("대부고등학교장") || clean.includes("특기사항") || clean.includes("이수학점")) return;
 
-              // 1) 온점 누락 검사
+              // 1) 온점 누락 검사: 마침표로 끝나지 않는 경우
               if (!clean.endsWith('.') && !clean.endsWith('.)') && !clean.endsWith(".'")) {
                 issues.push({
                   page: p.page,
                   word: clean.slice(-4),
-                  snippet: clean + " ⚠️ [온점(.) 누락 또는 문장 중간 끊김]"
+                  snippet: clean + " ⚠️ [문장 끝 온점(.) 누락]"
                 });
                 return;
               }
@@ -543,16 +548,16 @@
                 issues.push({
                   page: p.page,
                   word: coreSentence.slice(-2) + '.',
-                  snippet: clean // 문장 전체 반환
+                  snippet: clean
                 });
               }
             });
           });
 
           if (issues.length > 0) {
-            return { pass: false, issues: issues, msg: `5대 서술 영역 내 명사형 종결어미 위반 및 온점 누락 총 ${issues.length}건이 검출되었습니다.` };
+            return { pass: false, issues: issues, msg: `5대 서술 영역 내 명사형 종결어미 위반 및 끝 온점 누락 총 ${issues.length}건이 검출되었습니다.` };
           }
-          return { pass: true, msg: "5대 서술 영역 명사형 종결어미 및 마침표 규격 준수 확인" };
+          return { pass: true, msg: "5대 서술 영역 명사형 종결어미 및 문장 마침표 규격 준수 확인" };
         }
       },
       {
@@ -609,7 +614,7 @@
                   issues.push({
                     page: p.page,
                     word: matchWord ? matchWord[0] : "자치회",
-                    snippet: clean // 임원 명칭 및 기간이 포함된 문장 전체
+                    snippet: clean
                   });
                 }
               }
@@ -645,14 +650,14 @@
               if (!clean || clean.length < 10) return;
               if (clean.includes("10.131.") || clean.includes("대부고등학교장") || clean.includes("학교생활기록부")) return;
 
-              // 1) 조사 단독 분리 오타 (예: "탐구 를", "학생 에게")
+              // 1) 조사 단독 분리 오타
               const josaMatch = clean.match(/[가-힣]{2,}\s+(을|를|에게|께서)\s+[가-힣]/);
               if (josaMatch) {
                 issues.push({ page: p.page, word: josaMatch[0], snippet: clean + " ⚠️ [조사 분리 띄어쓰기 오류 의심]" });
                 return;
               }
 
-              // 2) 문맥상 비정상 비문 (조사나 어미로 문장이 덜 끝난 경우)
+              // 2) 문맥상 비문
               if (/(하고|하며|위해|통해|대한|있는|은|는|이|가|을|를)\.$/.test(clean)) {
                 issues.push({ page: p.page, word: clean.slice(-3), snippet: clean + " ⚠️ [서술어 누락/비문 의심]" });
               }
@@ -738,6 +743,47 @@
           }
           return { pass: true, msg: "낙인성 부정 단독 서술 없음" };
         }
+      },
+      {
+        // ★ 2번 요청 완벽 반영: 날짜 표준 규격 신규 독립 검증 항목 신설
+        id: 25,
+        title: "표준 날짜 표기 형식(YYYY.MM.DD.) 검증",
+        req: "생활기록부 날짜는 년, 월, 일 뒤에 온점을 모두 찍는 형식(예: 2026.10.29.)이 원칙. 끝 온점 누락(2026.10.29), 온점 2개(2026..10.29.), 중간 띄어쓰기(2026. 10.29.) 등 잘못된 형식 정밀 검출",
+        check: function(filteredPages, narrativePages) {
+          const issues = [];
+          narrativePages.forEach(p => {
+            p.sentences.forEach(sentence => {
+              const clean = sentence.trim();
+              if (!clean) return;
+
+              // 1) 온점이 2개 연속 들어간 오류 (예: 2026..10.29)
+              const doubleDot = clean.match(/\b\d{4}\.\.\d{1,2}\.\d{1,2}\.?/);
+              if (doubleDot) {
+                issues.push({ page: p.page, word: doubleDot[0], snippet: clean + " ⚠️ [날짜 온점 2개(..) 오류]" });
+                return;
+              }
+
+              // 2) 날짜 사이에 불필요한 공백이 들어간 오류 (예: 2026. 10.29. 또는 2026.10. 29.)
+              const spaceDate = clean.match(/\b\d{4}\.\s+\d{1,2}\.|\b\d{4}\.\d{1,2}\.\s+\d{1,2}\./);
+              if (spaceDate) {
+                issues.push({ page: p.page, word: spaceDate[0], snippet: clean + " ⚠️ [날짜 내 비정상 공백 오류]" });
+                return;
+              }
+
+              // 3) 마지막 온점 누락 오류 (예: 2026.10.29 뒤에 마침표 없이 다른 글자나 괄호가 오는 경우)
+              // (정상 규격인 \d{4}\.\d{1,2}\.\d{1,2}\. 은 제외하고 뒤에 온점이 빠진 것만 검출)
+              const missingEndDot = clean.match(/\b(\d{4}\.\d{1,2}\.\d{1,2})(?!\.)/);
+              if (missingEndDot) {
+                issues.push({ page: p.page, word: missingEndDot[0], snippet: clean + " ⚠️ [날짜 끝 온점(.) 누락 오류]" });
+              }
+            });
+          });
+
+          if (issues.length > 0) {
+            return { pass: false, issues: issues, msg: `잘못된 날짜 표기 형식(온점 누락, 온점 중복, 띄어쓰기 등) 총 ${issues.length}건이 검출되었습니다.` };
+          }
+          return { pass: true, msg: "날짜 표준 표기 규격(YYYY.MM.DD.) 모두 준수 확인" };
+        }
       }
     ];
 
@@ -749,7 +795,6 @@
         .replace(/[\d.*]{5,}\/[가-힣]+/g, ' ');
     }
 
-    // 1. 전체 전처리 필터링 (인적·학적, 봉사, 수상, 성적표 제거)
     function filterExcludedSections(pagesData) {
       let isInsidePersonalTable = false;
       let isInsideVolunteerTable = false;
@@ -831,7 +876,7 @@
       });
     }
 
-    // 2. 순수 5대 서술 영역 추출 및 문장 병합 복원 (줄바꿈 끊김 완벽 복원)
+    // ★ 문장 결합 복원 및 괄호 날짜 마침표 보호 전처리
     function extractPureNarratives(filteredPages) {
       return filteredPages.map(p => {
         const lines = p.text.split('\n');
@@ -852,7 +897,7 @@
             inNarrative = true;
           }
 
-          // 표나 번호 섹션으로 바뀌면 서술 구간 종료
+          // 표나 번호 섹션 종료
           if (
             compact.includes("출결상황") || compact.includes("자격증및인증") || 
             compact.includes("수상경력") || compact.includes("이수학점합계") ||
@@ -869,12 +914,16 @@
             }
             currentParagraph += normalized;
 
-            // 마침표(`.`)로 문장이 끝났거나 새 과목/영역이 시작될 때 문장 분리
+            // 서술어 마침표(`.`)로 끝났을 때만 문장 분리 (단, 날짜 온점으로 끝난 경우는 제외)
             if (/[.?!]$/.test(normalized) || /:\s*$/.test(normalized)) {
-              const sList = currentParagraph.split(/(?<=[.?!])\s+/);
+              // 괄호 날짜의 온점을 임시 보호 문자로 치환하여 문장이 중간에 쪼개지는 현상 원천 방지
+              let protectedText = currentParagraph.replace(/(\d{4})\.(\d{1,2})\.(\d{1,2})\./g, '$1§$2§$3§');
+
+              const sList = protectedText.split(/(?<=[.?!])\s+/);
               sList.forEach(s => {
-                const sClean = s.trim();
-                if (sClean.length > 3) completeSentences.push(sClean);
+                // 보호했던 온점 복원
+                const restored = s.replace(/§/g, '.').trim();
+                if (restored.length > 3) completeSentences.push(restored);
               });
               currentParagraph = "";
             }
@@ -892,7 +941,6 @@
       });
     }
 
-    // ★ [핵심] 키워드가 포함된 문장 전체(주어부터 서술어/온점까지)를 100% 온전하게 반환
     function findKeywordLocations(narrativePages, targets, strictWords = []) {
       const results = [];
       narrativePages.forEach(p => {
@@ -903,26 +951,16 @@
           if (cleanSentence.includes("10.131.") || (cleanSentence.includes("반") && cleanSentence.includes("번호") && cleanSentence.includes("성명"))) return;
           if (cleanSentence.includes("(학교)대부고등학교") || cleanSentence.includes("대부중학교 제3학년") || cleanSentence.includes("대부고등학교 제1학년") || cleanSentence.includes("대부고등학교장")) return;
 
-          // 1) 일반 대상 검색
           targets.forEach(t => {
             if (cleanSentence.includes(t)) {
-              results.push({
-                page: p.page,
-                word: t,
-                snippet: cleanSentence // 줄임 없는 문장 전체 반환!
-              });
+              results.push({ page: p.page, word: t, snippet: cleanSentence });
             }
           });
 
-          // 2) 엄격 단어 검색
           strictWords.forEach(sw => {
             const regex = new RegExp(`(^|[^a-zA-Z가-힣])${escapeRegExp(sw)}([^a-zA-Z가-힣]|$)`);
             if (regex.test(cleanSentence)) {
-              results.push({
-                page: p.page,
-                word: sw,
-                snippet: cleanSentence // 줄임 없는 문장 전체 반환!
-              });
+              results.push({ page: p.page, word: sw, snippet: cleanSentence });
             }
           });
         });
@@ -1022,7 +1060,7 @@
           rawPagesData.push({ page: 1, text: text });
         }
 
-        loadingText.innerText = "🔍 24대 항목 전수 검사를 실행하고 있습니다...";
+        loadingText.innerText = "🔍 25대 항목 전수 검사를 실행하고 있습니다...";
         const filteredPages = filterExcludedSections(rawPagesData);
         const narrativePages = extractPureNarratives(filteredPages);
 
@@ -1056,7 +1094,6 @@
       }
     }
 
-    // 24개 검사 실행 및 문장 전체 렌더링
     function runInspection(filteredPages, narrativePages, filename) {
       const tbody = document.getElementById("checklistBody");
       tbody.innerHTML = "";
@@ -1079,7 +1116,6 @@
               </div>
               ${result.issues.map(iss => {
                 const safeWord = escapeRegExp(iss.word);
-                // 문장 전체에서 키워드만 정확하게 하이라이트
                 const highlighted = iss.snippet.replace(
                   new RegExp(safeWord, 'g'), 
                   `<span class="highlight-word">${iss.word}</span>`
@@ -1088,7 +1124,6 @@
                   <div class="detected-row">
                     <div class="detected-text">
                       <span class="page-tag ${isBlue ? 'blue' : ''}">${iss.page}페이지</span>
-                      <!-- 말줄임표 없이 문장 전체 온전 표시 -->
                       <span>${highlighted}</span>
                     </div>
                     <select class="item-select ${isBlue ? 'select-need-check' : 'select-need-fix'}" onchange="handleItemStatusChange(this)">
@@ -1131,6 +1166,7 @@
         tbody.appendChild(tr);
       });
 
+      // 25개 기준으로 수치 갱신
       document.getElementById("statTotal").innerHTML = `${total}<span>개</span>`;
       document.getElementById("statPass").innerHTML = `${passCount}<span>개</span>`;
       document.getElementById("statFail").innerHTML = `${failCount}<span>건</span>`;
