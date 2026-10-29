@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2026학년도 2학기 학교생활기록부 점검 (정밀 검토 & 전 항목 드롭다운 지원)</title>
+  <title>2026학년도 2학기 학교생활기록부 점검 (서술영역 정밀 검증 & 임원 더블체크)</title>
   <!-- PDF.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
@@ -215,24 +215,21 @@
     }
     .td-num { width: 45px; text-align: center; color: var(--text-muted); font-weight: 700; }
     .td-name { width: 230px; font-weight: 600; color: #1e293b; }
-    .td-status { width: 140px; text-align: center; }
+    .td-status { width: 100px; text-align: center; }
 
-    /* 드롭다운 스타일 */
-    .status-select {
-      width: 100%;
-      padding: 7px 10px;
+    .status-tag {
+      display: inline-block;
+      padding: 5px 12px;
       border-radius: 6px;
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 700;
-      cursor: pointer;
-      outline: none;
-      transition: all 0.2s;
     }
-    .select-need-fix { background-color: #fef2f2; border: 1.5px solid #ef4444; color: #dc2626; }
-    .select-need-check { background-color: #fffbeb; border: 1.5px solid #f59e0b; color: #b45309; }
-    .select-fixed { background-color: #eff6ff; border: 1.5px solid #3b82f6; color: #1d4ed8; }
-    .select-done { background-color: #ecfdf5; border: 1.5px solid #10b981; color: #047857; }
+    .status-ok { background: #ecfdf5; color: #059669; }
+    .status-fail { background: #fef2f2; color: #dc2626; }
+    .status-wait { background: #f1f5f9; color: #64748b; }
+    .status-double { background: #eff6ff; color: #1d4ed8; }
 
+    /* 검출 박스 스타일 */
     .detected-box {
       margin-top: 10px;
       background: #fef2f2;
@@ -241,8 +238,8 @@
       padding: 12px 14px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      max-height: 520px;
+      gap: 10px;
+      max-height: 550px;
       overflow-y: auto;
     }
     .detected-box.double-check-box {
@@ -250,29 +247,57 @@
       border-color: #bfdbfe;
     }
     .detected-count-badge {
-      font-size: 11.5px;
+      font-size: 12px;
       font-weight: 700;
       color: #b91c1c;
-      margin-bottom: 2px;
+      margin-bottom: 4px;
     }
     .detected-count-badge.blue {
       color: #1d4ed8;
     }
-    .detected-item {
-      font-size: 12.5px;
-      color: #991b1b;
-      line-height: 1.55;
-      padding-bottom: 6px;
+
+    /* 개별 라인 우측 드롭다운 */
+    .detected-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 8px;
       border-bottom: 1px dashed #fca5a5;
     }
-    .detected-item.blue {
-      color: #1e40af;
+    .detected-box.double-check-box .detected-row {
       border-bottom-color: #bfdbfe;
     }
-    .detected-item:last-child {
+    .detected-row:last-child {
       border-bottom: none;
       padding-bottom: 0;
     }
+    .detected-text {
+      flex: 1;
+      font-size: 12.5px;
+      color: #991b1b;
+      line-height: 1.55;
+    }
+    .detected-box.double-check-box .detected-text {
+      color: #1e40af;
+    }
+
+    .item-select {
+      width: 105px;
+      padding: 4px 6px;
+      border-radius: 5px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      outline: none;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+    .select-need-fix { background-color: #fee2e2; border: 1.5px solid #ef4444; color: #dc2626; }
+    .select-need-check { background-color: #fef3c7; border: 1.5px solid #f59e0b; color: #b45309; }
+    .select-fixed { background-color: #dbeafe; border: 1.5px solid #3b82f6; color: #1d4ed8; }
+    .select-done { background-color: #d1fae5; border: 1.5px solid #10b981; color: #047857; }
+
     .page-tag {
       background: #dc2626;
       color: white;
@@ -299,7 +324,7 @@
 
   <header class="navbar">
     <div class="logo">
-      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">전 항목 드롭다운 & 더블체크 모드</span>
+      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">서술영역 정밀 필터 적용</span>
     </div>
   </header>
 
@@ -318,7 +343,7 @@
       <input type="file" id="pdfInput" accept=".pdf, .txt" onchange="handleFile(event)">
       <div class="upload-icon">📄</div>
       <div class="upload-title" id="uploadTitle">생활기록부 PDF 파일을 업로드하세요</div>
-      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요. (서술형 영문 전수 검출, 명사형 종결/온점, 학생시점 소감, 자치회 임원 더블체크 완벽 지원)</div>
+      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요. (창체 3영역, 세특, 행발 순수 서술문 중심 정밀 분석)</div>
       <div class="status-analyzing" id="loadingText">⏳ PDF 페이지별 텍스트 및 위치를 정밀 분석하고 있습니다...</div>
     </div>
 
@@ -359,14 +384,14 @@
     <!-- 테이블 박스 -->
     <div class="content-box">
       <div class="table-container">
-        <div class="section-title">2026학년도 기재요령 24대 항목별 검토 결과 및 조치 관리</div>
+        <div class="section-title">2026학년도 기재요령 24대 항목별 검토 결과 및 개별 조치 관리</div>
         <table>
           <thead>
             <tr>
               <th class="td-num">번호</th>
               <th class="td-name">검토 항목</th>
-              <th>검증 기준 및 실제 검출 내용 (전체 나열)</th>
-              <th class="td-status">조치 상태 선택</th>
+              <th>검증 기준 및 실제 검출 내용 (개별 조치 드롭다운 제공)</th>
+              <th class="td-status">판정</th>
             </tr>
           </thead>
           <tbody id="checklistBody">
@@ -383,15 +408,15 @@
       return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
-    // 24대 점검 규칙 정의 (요청사항 1~5번 완벽 반영)
+    // 24대 점검 규칙 정의
     const rules = [
       {
         id: 1,
         title: "사교육 유발 요인 기재 금지",
         req: "공인어학시험, 교내외 대회 성적/수상, 모의고사 성적, 논문, 도서출간, 해외활동, 부모지위, 장학금, 상호명(유튜브, 인스타그램, 챗 GPT, 엑셀 등) 기재 금지",
-        check: function(filteredPages) {
+        check: function(filteredPages, narrativePages) {
           const targets = ['토익', 'TOEIC', '토플', 'TOEFL', '텝스', 'TEPS', 'KMO', '영재교육원', '국제기구', 'OECD', '올림픽', '유튜브', '인스타그램', '챗 GPT', 'ChatGPT', '엑셀', '한국전력공사', '통계청'];
-          const issues = findKeywordLocations(filteredPages, targets, ['UN']);
+          const issues = findKeywordLocations(narrativePages, targets, ['UN']);
           if (issues.length > 0) {
             return { pass: false, issues: issues, msg: `금지 키워드 및 상호명 총 ${issues.length}건이 검출되었습니다.` };
           }
@@ -402,9 +427,9 @@
         id: 2,
         title: "고교블라인드 위반 여부",
         req: "(고교블라인드) 학생 출신 고교를 알 수 있는 내용(학교명, 재단명, 학교 축제명, 학교 별칭 등) 기재 금지 (※ 인적·학적 표, 봉사 표, 수상 표, 성적표, 하단 꼬리말 제외)",
-        check: function(filteredPages) {
+        check: function(filteredPages, narrativePages) {
           const targets = ['대부', '고등학교'];
-          const issues = findKeywordLocations(filteredPages, targets);
+          const issues = findKeywordLocations(narrativePages, targets);
           if (issues.length > 0) {
             return { pass: false, issues: issues, msg: `고교 블라인드 위반 단어('대부' 등) 총 ${issues.length}건이 서술 영역에서 검출되었습니다.` };
           }
@@ -415,15 +440,14 @@
         id: 3,
         title: "1인칭 및 학생 시점 서술 금지",
         req: "동일 문구 복사 기재 및 '나는~', '내가~' 외에도 학생 본인이 쓴 듯한 주관적 소감문·일기형 표현('느꼈다', '생각했다', '깨달았다', '다짐함' 등) 기재 금지",
-        check: function(filteredPages) {
-          // 학생 시점 소감/일기 투 표현 전수 검출
+        check: function(filteredPages, narrativePages) {
           const targets = [
             '나는 ', '내가 ', '저의 ', '나의 ', 
             '느꼈다', '느꼈음', '생각했다', '생각함', '깨달았다', '깨달음', 
             '뿌듯했다', '뿌듯함', '다짐했다', '다짐함', '배웠다', '배움',
             '기억에 남는다', '아쉬웠다', '기뻤다', '스스로 칭찬'
           ];
-          const issues = findKeywordLocations(filteredPages, targets);
+          const issues = findKeywordLocations(narrativePages, targets);
           if (issues.length > 0) {
             return { pass: false, issues: issues, msg: `학생 시점 서술 및 1인칭 주관적 표현 총 ${issues.length}건이 검출되었습니다. (교사 관찰자 시점 객관적 서술로 수정 필요)` };
           }
@@ -434,9 +458,9 @@
         id: 4,
         title: "교사 미관찰 내용 기재 금지",
         req: "아르바이트, 교외 봉사활동 등 교사가 직접 관찰할 수 없는 내용 배제 (※ 봉사활동실적란 외 서술 영역 점검)",
-        check: function(filteredPages) {
+        check: function(filteredPages, narrativePages) {
           const targets = ['아르바이트', '알바', '교외 봉사'];
-          const issues = findKeywordLocations(filteredPages, targets);
+          const issues = findKeywordLocations(narrativePages, targets);
           if (issues.length > 0) {
             return { pass: false, issues: issues, msg: `교사 미관찰 내용 총 ${issues.length}건이 검출되었습니다.` };
           }
@@ -446,25 +470,26 @@
       {
         id: 5,
         title: "한글 입력 원칙 (영문 표현 점검)",
-        req: "학교생활기록부 문자는 한글 입력 원칙. 서술형 항목 내 모든 영문 표현은 부득이한 경우 외 한글 표기 여부 확인을 위해 전수 표시",
-        check: function(filteredPages) {
+        req: "학교생활기록부 문자는 한글 입력 원칙. 서술형 항목 내 모든 영문 표현은 부득이한 경우 외 한글 표기 여부 확인을 위해 전수 표시 (※ 서식제목 '학교생활기록부II'의 II는 제외)",
+        check: function(filteredPages, narrativePages) {
           const issues = [];
-          filteredPages.forEach(p => {
+          narrativePages.forEach(p => {
             const sentences = p.text.split(/(?<=[.?!])\s+|\n{1,}/);
             sentences.forEach(sentence => {
               const clean = sentence.trim();
               if (!clean || clean.length < 2) return;
-              if (clean.includes("10.131.") || (clean.includes("반") && clean.includes("번호") && clean.includes("성명"))) return;
+              if (clean.includes("10.131.") || clean.includes("학교생활세부사항기록부") || clean.includes("학교생활기록부II") || clean.includes("학교생활기록부 II")) return;
 
-              // 알파벳 2글자 이상 단어 검색
               const englishWords = clean.match(/\b[A-Za-z]{2,}\b/g);
               if (englishWords) {
-                // 중복 제거 후 첫 번째 영문 단어로 등록
-                issues.push({
-                  page: p.page,
-                  word: englishWords[0],
-                  snippet: clean
-                });
+                const filteredEng = englishWords.filter(w => w !== 'II' && w !== 'ii');
+                if (filteredEng.length > 0) {
+                  issues.push({
+                    page: p.page,
+                    word: filteredEng[0],
+                    snippet: clean
+                  });
+                }
               }
             });
           });
@@ -478,30 +503,31 @@
       {
         id: 6,
         title: "특수문자·문단구분 기호 제한",
-        req: "기재 가능: ' , . () / 기재 불가: ·(가운데점), ‘ ’, “ ”, ?, ! (※ 성적표, 인적·학적 표, 수상 표 제외)",
-        check: function(filteredPages) {
-          const targets = ['·', '‘', '’', '“', '”', '?', '!'];
-          const issues = findKeywordLocations(filteredPages, targets);
+        req: "기재 가능: 직선 작은따옴표(') , . () / 기재 불가: 둥근 곡선 작은따옴표(‘ ’), 큰따옴표(“, ”, \"), ·(가운데점), ?, ! (※ 성적표, 인적·학적, 수상 제외)",
+        check: function(filteredPages, narrativePages) {
+          const targets = ['·', '‘', '’', '“', '”', '"', '?', '!'];
+          const issues = findKeywordLocations(narrativePages, targets);
           if (issues.length > 0) {
-            return { pass: false, issues: issues, msg: `기재 지양 특수문자 총 ${issues.length}건이 서술 영역에서 검출되었습니다.` };
+            return { pass: false, issues: issues, msg: `기재 지양 특수문자(곡선따옴표, 큰따옴표, 가운데점 등) 총 ${issues.length}건이 서술 영역에서 검출되었습니다.` };
           }
-          return { pass: true, msg: "서술 영역 내 허용 부호 외 특수문자 미검출" };
+          return { pass: true, msg: "서술 영역 내 허용 부호 외 특수문자 미검출 (곧은 ' 따옴표 준수)" };
         }
       },
       {
         id: 7,
         title: "명사형 종결어미 및 온점 마침표 검증",
-        req: "문장은 반드시 명사형 종결어미(~함., ~임., ~됨. 등)로 끝나야 하며, 문장 중간 끊김이나 끝 온점(.) 누락 여부 엄격 점검",
-        check: function(filteredPages) {
+        req: "창체 3개 영역(자율·동아리·진로), 과목별 세특, 행동특성 및 종합의견 서술문은 반드시 명사형 종결어미(~함., ~임., ~됨.) 및 끝 온점(.) 준수 필수",
+        check: function(filteredPages, narrativePages) {
           const issues = [];
-          filteredPages.forEach(p => {
+          narrativePages.forEach(p => {
             const lines = p.text.split('\n');
             lines.forEach(line => {
               const clean = line.trim();
-              if (!clean || clean.length < 4) return;
-              if (clean.includes("10.131.") || clean.includes("대부고등학교장") || clean.includes("과목별 세부능력")) return;
+              if (!clean || clean.length < 5) return;
+              if (clean.includes("10.131.") || clean.includes("대부고등학교장") || clean.includes("과목별 세부능력") || clean.includes("특기사항")) return;
+              if (clean.includes("이수학점") || clean.includes("창의적 체험활동") || clean.includes("행동특성")) return;
 
-              // 1) 온점 누락 검사: 문장 같은데 끝에 온점(.)이 없는 경우
+              // 온점 누락 검사
               if (!clean.endsWith('.')) {
                 issues.push({
                   page: p.page,
@@ -511,12 +537,11 @@
                 return;
               }
 
-              // 2) 명사형 어미 검사 (~함., ~임., ~됨., ~음. 등으로 끝나는지 검사)
+              // 명사형 어미 검사
               const validEndings = ['함.', '임.', '됨.', '음.', '봄.', '줌.', '감.'];
               const lastTwoChars = clean.slice(-2);
               const isValidEnding = validEndings.includes(lastTwoChars);
 
-              // 다. / 요. / 까. / 며 / 고 등 비명사형 종결어미 탐지
               if (!isValidEnding) {
                 issues.push({
                   page: p.page,
@@ -528,9 +553,9 @@
           });
 
           if (issues.length > 0) {
-            return { pass: false, issues: issues, msg: `명사형 종결어미(~함., ~임. 등) 위반 및 온점 누락 총 ${issues.length}건이 검출되었습니다.` };
+            return { pass: false, issues: issues, msg: `5대 서술 영역 내 명사형 종결어미 위반 및 온점 누락 총 ${issues.length}건이 검출되었습니다.` };
           }
-          return { pass: true, msg: "명사형 종결어미 및 마침표 규격 준수 확인" };
+          return { pass: true, msg: "5대 서술 영역 명사형 종결어미 및 마침표 규격 준수 확인" };
         }
       },
       {
@@ -555,9 +580,9 @@
         id: 11,
         title: "‘대회’ 용어 기재 금지",
         req: "학교생활기록부 전 영역에서 '대회' 단어 기재 절대 금지 (※ 수상경력 표 제외)",
-        check: function(filteredPages) {
+        check: function(filteredPages, narrativePages) {
           const targets = ['대회'];
-          const issues = findKeywordLocations(filteredPages, targets);
+          const issues = findKeywordLocations(narrativePages, targets);
           if (issues.length > 0) {
             return { pass: false, issues: issues, msg: `서술 영역에서 기재금지어 '대회' 단어 총 ${issues.length}건이 검출되었습니다.` };
           }
@@ -574,17 +599,36 @@
         id: 13,
         title: "[더블체크] 학급·전교 자치회 임원 종류 및 재임기간",
         req: "학급자치회(회장 1명, 부회장 1명) 및 전교자치회 임원 종류와 재임기간(1·2학년: 3월 1일~학년말, 3학년: 3월 1일~졸업일) 정확성 더블체크",
-        check: function(filteredPages) {
-          // 임원 관련 문구는 틀리지 않았더라도 전수 추출하여 더블체크를 도움
-          const targets = ['회장', '부회장', '자치회', '반장', '실장'];
-          const rawIssues = findKeywordLocations(filteredPages, targets);
+        check: function(filteredPages, narrativePages) {
+          // ★ 2번 요청 완벽 반영: 유연한 공백 허용 정규식으로 임원 종류 및 기간 날짜까지 전수 추출
+          const issues = [];
+          narrativePages.forEach(p => {
+            const lines = p.text.split('\n');
+            lines.forEach(line => {
+              const clean = line.trim();
+              if (!clean || clean.length < 3) return;
 
-          if (rawIssues.length > 0) {
+              // 회장, 부회장, 자치회, 반장 패턴 검색 (띄어쓰기 포함)
+              if (/(회\s*장|부\s*회\s*장|자\s*치\s*회|반\s*장|실\s*장)/.test(clean)) {
+                // 표 머리말이나 단순 단어 제외
+                if (!clean.includes("대부고등학교장") && !clean.includes("반 번호 성명")) {
+                  const matchWord = clean.match(/(학\s*급\s*회\s*장|학\s*급\s*부\s*회\s*장|전\s*교\s*회\s*장|전\s*교\s*부\s*회\s*장|회\s*장|부\s*회\s*장|자\s*치\s*회)/);
+                  issues.push({
+                    page: p.page,
+                    word: matchWord ? matchWord[0] : "자치회",
+                    snippet: clean // 임원 종류와 재임기간 날짜 괄호가 포함된 문장 전체
+                  });
+                }
+              }
+            });
+          });
+
+          if (issues.length > 0) {
             return { 
               pass: false, 
-              isDoubleCheck: true, // 더블체크 플래그
-              issues: rawIssues, 
-              msg: `⚠️ 오류가 아니라 임원 명칭 및 재임기간 규격 더블체크를 위해 표시되었습니다. (총 ${rawIssues.length}건 확인)` 
+              isDoubleCheck: true, 
+              issues: issues, 
+              msg: `⚠️ 오류가 아니라 임원 명칭 및 재임기간 규격 더블체크를 위해 표시되었습니다. (총 ${issues.length}건 확인)` 
             };
           }
           return { pass: true, msg: "자치활동 임원 기재 내역 없음 (해당 없음)" };
@@ -599,23 +643,37 @@
       {
         id: 15,
         title: "맞춤법·띄어쓰기 및 비문·어색한 문맥 점검",
-        req: "맞춤법, 띄어쓰기 반복 오류, 서술어·목적어 누락으로 의미가 불명확한 어색한 문장 점검",
-        check: function(filteredPages) {
+        req: "비문, 조사 앞뒤 비정상 띄어쓰기, 문장부호 앞 공백 등 서술 오류 점검 (5대 서술 영역 한정 정밀 검사)",
+        check: function(filteredPages, narrativePages) {
+          // ★ 1번 요청 완벽 반영: 단순 PDF 인쇄 자간 공백 오탐지 제거 & 진짜 띄어쓰기/문맥 오류만 선별
           const issues = [];
-          filteredPages.forEach(p => {
+          narrativePages.forEach(p => {
             const sentences = p.text.split(/(?<=[.?!])\s+|\n{1,}/);
             sentences.forEach(sentence => {
               const clean = sentence.trim();
-              if (!clean || clean.length < 5) return;
+              if (!clean || clean.length < 8) return;
               if (clean.includes("10.131.") || clean.includes("대부고등학교장")) return;
 
-              // 1) 공백 2칸 이상 연속 띄어쓰기 오류
-              if (/\s{2,}/.test(clean)) {
-                issues.push({ page: p.page, word: "  ", snippet: clean + " ⚠️ [비정상 다중 공백 발견]" });
+              // 1) 쉼표나 마침표 바로 앞에 비정상 공백이 있는 경우 (예: "활동을 함 .", "탐구하여 ,")
+              if (/\s+[.,]/.test(clean)) {
+                issues.push({ page: p.page, word: " ,", snippet: clean + " ⚠️ [문장부호 앞 비정상 공백]" });
                 return;
               }
 
-              // 2) 문맥상 불완전/어색한 문장 (조사로 끝나거나 문장 길이가 비정상적으로 짧은 경우)
+              // 2) 괄호 안쪽 양끝 공백 오류 (예: "( 프로젝트 )")
+              if (/\(\s+|\s+\)/.test(clean)) {
+                issues.push({ page: p.page, word: "( )", snippet: clean + " ⚠️ [괄호 안쪽 비정상 공백]" });
+                return;
+              }
+
+              // 3) 조사가 앞 명사와 분리되어 공백이 생긴 경우 (예: "탐구 를", "학생 은", "생각 이")
+              if (/[가-힣]\s+(은|는|이|가|을|를|과|와|로|으로|에|에서|에게)\s+/.test(clean)) {
+                const match = clean.match(/[가-힣]\s+(은|는|이|가|을|를|과|와|로|으로|에|에서|에게)\s+/);
+                issues.push({ page: p.page, word: match ? match[0] : "조사 띄어쓰기", snippet: clean + " ⚠️ [조사 분리 띄어쓰기 오류 의심]" });
+                return;
+              }
+
+              // 4) 문맥상 불완전한 비문 (조사나 연결어미로 비정상 종결)
               if (/(하고|하며|위해|통해|대한|있는|은|는|이|가|을|를)\.$/.test(clean)) {
                 issues.push({ page: p.page, word: clean.slice(-3), snippet: clean + " ⚠️ [서술어 누락/비문 의심]" });
               }
@@ -625,7 +683,7 @@
           if (issues.length > 0) {
             return { pass: false, issues: issues, msg: `맞춤법·띄어쓰기 및 어색한 문맥 총 ${issues.length}건이 검출되었습니다.` };
           }
-          return { pass: true, msg: "맞춤법, 띄어쓰기 및 문맥 호응 양호" };
+          return { pass: true, msg: "5대 서술 영역 맞춤법, 띄어쓰기 및 문맥 호응 양호" };
         }
       },
       {
@@ -668,9 +726,9 @@
         id: 22,
         title: "독서활동 '도서명(저자)' 형식",
         req: "ISBN 등재 도서 기준 '도서명(저자)' 형식 입력 준수",
-        check: function(filteredPages) {
+        check: function(filteredPages, narrativePages) {
           const issues = [];
-          filteredPages.forEach(p => {
+          narrativePages.forEach(p => {
             if (p.text.includes("읽음") && !p.text.includes("(") && !p.text.includes(")")) {
               issues.push({ page: p.page, word: "도서명", snippet: "도서명 뒤 저자 괄호 표기 누락 추정" });
             }
@@ -691,9 +749,9 @@
         id: 24,
         title: "학생의 부정적인 행동특성 기재",
         req: "단점 기재 시 변화와 개선 노력 병기 여부",
-        check: function(filteredPages) {
+        check: function(filteredPages, narrativePages) {
           const targets = ['불성실', '폭력적', '지각이 잦음'];
-          const issues = findKeywordLocations(filteredPages, targets);
+          const issues = findKeywordLocations(narrativePages, targets);
           if (issues.length > 0) {
             return { pass: false, issues: issues, msg: `극단적 부정 표현 총 ${issues.length}건이 검출되었습니다.` };
           }
@@ -710,6 +768,7 @@
         .replace(/[\d.*]{5,}\/[가-힣]+/g, ' ');
     }
 
+    // 1. 전체 전처리 필터링 (인적·학적, 봉사, 수상, 성적표 제거)
     function filterExcludedSections(pagesData) {
       let isInsidePersonalTable = false;
       let isInsideVolunteerTable = false;
@@ -725,130 +784,59 @@
           const trimmed = line.trim();
           const compact = trimmed.replace(/\s+/g, '');
 
-          // 1) 인적·학적사항 표 감지
+          // 1) 인적·학적사항 표
           if (
-            compact.includes("1.인적·학적사항") ||
-            compact.includes("1.인적학적사항") ||
-            compact.includes("인적·학적사항") ||
+            compact.includes("1.인적·학적사항") || compact.includes("1.인적학적사항") ||
             (compact.includes("학생정보") && compact.includes("성명") && compact.includes("주민등록번호")) ||
             (compact.includes("학적사항") && compact.includes("졸업") && compact.includes("입학"))
           ) {
             isInsidePersonalTable = true;
             continue;
           }
-
           if (isInsidePersonalTable) {
-            if (
-              /^[2-9]\s*\./.test(trimmed) ||
-              trimmed.includes("2. 출결상황") ||
-              trimmed.includes("3. 수상경력") ||
-              trimmed.includes("출결상황")
-            ) {
+            if (/^[2-9]\s*\./.test(trimmed) || trimmed.includes("2. 출결상황") || trimmed.includes("3. 수상경력")) {
               isInsidePersonalTable = false;
             } else {
               continue;
             }
           }
+          if ((trimmed.includes("대부중학교") && trimmed.includes("졸업")) || (trimmed.includes("대부고등학교") && trimmed.includes("입학")) || trimmed.includes("주민등록번호")) continue;
 
-          if (
-            (trimmed.includes("대부중학교") && trimmed.includes("졸업")) ||
-            (trimmed.includes("대부고등학교") && trimmed.includes("입학")) ||
-            trimmed.includes("주민등록번호") ||
-            trimmed.includes("졸업대장")
-          ) {
-            continue;
-          }
-
-          // 2) 봉사활동실적 표 감지
-          if (
-            compact.includes("봉사활동실적") ||
-            compact.includes("봉사활동누계") ||
-            (compact.includes("일자또는기간") && compact.includes("장소또는주관기관명")) ||
-            (compact.includes("활동내용") && compact.includes("누계시간"))
-          ) {
+          // 2) 봉사활동실적 표
+          if (compact.includes("봉사활동실적") || (compact.includes("일자또는기간") && compact.includes("장소또는주관기관명"))) {
             isInsideVolunteerTable = true;
             continue;
           }
-
           if (isInsideVolunteerTable) {
-            if (
-              /^[4-9]\s*\./.test(trimmed) ||
-              trimmed.includes("5. 교과학습") ||
-              trimmed.includes("6. 교과학습") ||
-              trimmed.includes("교과학습발달상황") ||
-              trimmed.includes("자율활동") ||
-              trimmed.includes("동아리활동") ||
-              trimmed.includes("진로활동") ||
-              trimmed.includes("세부능력 및 특기사항")
-            ) {
+            if (/^[4-9]\s*\./.test(trimmed) || trimmed.includes("교과학습발달상황") || trimmed.includes("자율활동") || trimmed.includes("동아리활동") || trimmed.includes("진로활동") || trimmed.includes("세부능력")) {
               isInsideVolunteerTable = false;
             } else {
               continue;
             }
           }
+          if (trimmed.includes("(학교)대부고등학교") || trimmed.includes("(학교) 대부고등학교")) continue;
 
-          if (
-            trimmed.includes("(학교)대부고등학교") ||
-            trimmed.includes("(학교) 대부고등학교") ||
-            (/\d{4}\.\d{2}\.\d{2}\./.test(trimmed) && trimmed.includes("대부고등학교") && (trimmed.includes("시간") || /\b\d+\s+\d+\b/.test(trimmed)))
-          ) {
-            continue;
-          }
-
-          // 3) 수상경력 표 감지
-          if (
-            trimmed.includes("3. 수상경력") || 
-            trimmed.includes("3.수상경력") ||
-            (compact.includes("수상명") && (compact.includes("등급") || compact.includes("수여기관") || compact.includes("참가대상") || compact.includes("수상연월일"))) ||
-            (compact.includes("학기") && compact.includes("수상명"))
-          ) {
+          // 3) 수상경력 표
+          if (trimmed.includes("3. 수상경력") || (compact.includes("수상명") && (compact.includes("등급") || compact.includes("수여기관")))) {
             isInsideAwardTable = true;
             continue;
           }
-
           if (isInsideAwardTable) {
-            if (
-              /^[4-9]\s*\./.test(trimmed) || 
-              trimmed.includes("4. 자격증") || 
-              trimmed.includes("5. 출결상황") ||
-              trimmed.includes("6. 창의적") ||
-              trimmed.includes("자율활동") ||
-              trimmed.includes("동아리활동") ||
-              trimmed.includes("진로활동")
-            ) {
+            if (/^[4-9]\s*\./.test(trimmed) || trimmed.includes("4. 자격증") || trimmed.includes("5. 출결상황") || trimmed.includes("자율활동") || trimmed.includes("동아리활동") || trimmed.includes("진로활동")) {
               isInsideAwardTable = false;
             } else {
               continue;
             }
           }
+          if (trimmed.includes("대부고등학교장") || /\b전교생\(\d+명\)/.test(trimmed)) continue;
 
-          if (
-            trimmed.includes("대부고등학교장") ||
-            /\b전교생\(\d+명\)/.test(trimmed) ||
-            /\b수강자\b/.test(trimmed) && trimmed.includes("202") ||
-            /\b(최우수상|우수상|장려상|표창장)\(\d+위?\)/.test(trimmed)
-          ) {
-            continue;
-          }
-
-          // 4) 성적 일람표 감지
-          if (
-            (compact.includes("학기") && compact.includes("교과") && compact.includes("과목")) ||
-            (compact.includes("원점수") && compact.includes("성취도")) ||
-            (compact.includes("학점수") && compact.includes("석차등급"))
-          ) {
+          // 4) 성적 일람표
+          if ((compact.includes("학기") && compact.includes("교과") && compact.includes("과목")) || (compact.includes("원점수") && compact.includes("성취도"))) {
             isInsideGradeTable = true;
             continue;
           }
-
           if (isInsideGradeTable) {
-            if (
-              trimmed.includes("과목별 세부능력") || 
-              trimmed.includes("과목별세부능력") || 
-              trimmed.includes("세부능력 및 특기사항") ||
-              trimmed.includes("세부능력및특기사항") ||
-              trimmed.includes("특기사항")
-            ) {
+            if (trimmed.includes("과목별 세부능력") || trimmed.includes("세부능력 및 특기사항") || trimmed.includes("특기사항")) {
               isInsideGradeTable = false;
             } else {
               continue;
@@ -858,9 +846,43 @@
           validLines.push(line);
         }
 
+        return { page: p.page, text: validLines.join('\n') };
+      });
+    }
+
+    // 2. 순수 5대 서술형 영역 추출 (창체: 자율·동아리·진로, 교과세특, 행발)
+    function extractPureNarratives(filteredPages) {
+      return filteredPages.map(p => {
+        const lines = p.text.split('\n');
+        const narrativeLines = [];
+        let inNarrative = false;
+
+        for (let line of lines) {
+          const trimmed = line.trim();
+          const compact = trimmed.replace(/\s+/g, '');
+
+          // 5대 서술 영역 진입 감지
+          if (
+            compact.includes("자율활동") || compact.includes("동아리활동") || compact.includes("진로활동") ||
+            compact.includes("세부능력및특기사항") || compact.includes("세부능력") ||
+            compact.includes("행동특성및종합의견") || compact.includes("행동특성")
+          ) {
+            inNarrative = true;
+          }
+
+          // 표나 번호 섹션으로 바뀌면 일시 정지
+          if (compact.includes("출결상황") || compact.includes("자격증및인증") || compact.includes("수상경력") || compact.includes("이수학점합계")) {
+            inNarrative = false;
+          }
+
+          if (inNarrative) {
+            narrativeLines.push(line);
+          }
+        }
+
         return {
           page: p.page,
-          text: validLines.join('\n')
+          text: narrativeLines.length > 0 ? narrativeLines.join('\n') : p.text
         };
       });
     }
@@ -874,17 +896,8 @@
           const cleanSentence = sentence.trim();
           if (!cleanSentence || cleanSentence.length < 2) return;
 
-          if (cleanSentence.includes("10.131.") || (cleanSentence.includes("반") && cleanSentence.includes("번호") && cleanSentence.includes("성명"))) {
-            return;
-          }
-          if (
-            cleanSentence.includes("(학교)대부고등학교") ||
-            cleanSentence.includes("대부중학교 제3학년") ||
-            cleanSentence.includes("대부고등학교 제1학년") ||
-            cleanSentence.includes("대부고등학교장")
-          ) {
-            return;
-          }
+          if (cleanSentence.includes("10.131.") || (cleanSentence.includes("반") && cleanSentence.includes("번호") && cleanSentence.includes("성명"))) return;
+          if (cleanSentence.includes("(학교)대부고등학교") || cleanSentence.includes("대부중학교 제3학년") || cleanSentence.includes("대부고등학교 제1학년") || cleanSentence.includes("대부고등학교장")) return;
 
           targets.forEach(t => {
             if (cleanSentence.includes(t)) {
@@ -904,7 +917,6 @@
       return results;
     }
 
-    // 초기 테이블 렌더링 (모든 항목에 기본 드롭다운 배치)
     function initTable() {
       const tbody = document.getElementById("checklistBody");
       tbody.innerHTML = "";
@@ -917,14 +929,7 @@
             <div style="font-weight: 600; color: #475569; margin-bottom: 2px;">${r.req}</div>
             <div style="font-size: 12px; color: #94a3b8;">PDF 파일 업로드 시 자동 검사됩니다.</div>
           </td>
-          <td class="td-status">
-            <select class="status-select select-need-check" onchange="handleStatusChange(this)">
-              <option value="확인 필요" selected>확인 필요</option>
-              <option value="확인 완료">확인 완료</option>
-              <option value="수정 필요">수정 필요</option>
-              <option value="수정 완료">수정 완료</option>
-            </select>
-          </td>
+          <td class="td-status"><span class="status-tag status-wait">대기</span></td>
         `;
         tbody.appendChild(tr);
       });
@@ -1005,7 +1010,9 @@
 
         loadingText.innerText = "🔍 24대 항목 전수 검사를 실행하고 있습니다...";
         const filteredPages = filterExcludedSections(rawPagesData);
-        runInspection(filteredPages, file.name);
+        const narrativePages = extractPureNarratives(filteredPages);
+
+        runInspection(filteredPages, narrativePages, file.name);
 
       } catch (err) {
         console.error("PDF Parsing Error:", err);
@@ -1021,10 +1028,9 @@
       }
     }
 
-    // 드롭다운 변경 처리 함수
-    function handleStatusChange(selectElement) {
+    function handleItemStatusChange(selectElement) {
       const val = selectElement.value;
-      selectElement.className = "status-select";
+      selectElement.className = "item-select";
       if (val === "수정 필요") {
         selectElement.classList.add("select-need-fix");
       } else if (val === "확인 필요") {
@@ -1036,8 +1042,7 @@
       }
     }
 
-    // 24개 검사 실행 및 렌더링
-    function runInspection(filteredPages, filename) {
+    function runInspection(filteredPages, narrativePages, filename) {
       const tbody = document.getElementById("checklistBody");
       tbody.innerHTML = "";
 
@@ -1046,16 +1051,16 @@
       let failCount = 0;
 
       rules.forEach(rule => {
-        const result = rule.check(filteredPages);
+        const result = rule.check(filteredPages, narrativePages);
         if (result.pass) passCount++; else failCount++;
 
         let issuesHtml = "";
         if (!result.pass && result.issues && result.issues.length > 0) {
-          const isBlue = result.isDoubleCheck; // 더블체크 항목인 경우 파란색 배지 적용
+          const isBlue = result.isDoubleCheck;
           issuesHtml = `
             <div class="detected-box ${isBlue ? 'double-check-box' : ''}">
               <div class="detected-count-badge ${isBlue ? 'blue' : ''}">
-                ${isBlue ? '📋 자치회 임원 기재 내역 (더블체크 대상)' : `총 ${result.issues.length}건의 점검·수정 대상 검출 (전체 목록)`} :
+                ${isBlue ? '📋 자치회 임원 기재 내역 (명칭 및 재임기간 더블체크 대상)' : `총 ${result.issues.length}건의 점검·수정 대상 검출 (전체 목록)`} :
               </div>
               ${result.issues.map(iss => {
                 const safeWord = escapeRegExp(iss.word);
@@ -1064,9 +1069,18 @@
                   `<span class="highlight-word">${iss.word}</span>`
                 );
                 return `
-                  <div class="detected-item ${isBlue ? 'blue' : ''}">
-                    <span class="page-tag ${isBlue ? 'blue' : ''}">${iss.page}페이지</span>
-                    <span>“...${highlighted}...”</span>
+                  <div class="detected-row">
+                    <div class="detected-text">
+                      <span class="page-tag ${isBlue ? 'blue' : ''}">${iss.page}페이지</span>
+                      <span>“...${highlighted}...”</span>
+                    </div>
+                    <!-- 개별 라인 우측 전용 드롭다운 -->
+                    <select class="item-select ${isBlue ? 'select-need-check' : 'select-need-fix'}" onchange="handleItemStatusChange(this)">
+                      <option value="${isBlue ? '확인 필요' : '수정 필요'}" selected>${isBlue ? '확인 필요' : '수정 필요'}</option>
+                      <option value="확인 완료">확인 완료</option>
+                      <option value="수정 완료">수정 완료</option>
+                      <option value="${isBlue ? '수정 필요' : '확인 필요'}">${isBlue ? '수정 필요' : '확인 필요'}</option>
+                    </select>
                   </div>
                 `;
               }).join('')}
@@ -1074,38 +1088,13 @@
           `;
         }
 
-        // ★ [핵심] 모든 24개 항목에 드롭다운 메뉴 설치!
-        let statusColHtml = "";
+        let statusTagHtml = "";
         if (result.pass) {
-          // 적합인 항목은 기본 '확인 완료' 상태로 드롭다운 제공
-          statusColHtml = `
-            <select class="status-select select-done" onchange="handleStatusChange(this)">
-              <option value="확인 완료" selected>확인 완료 (적합)</option>
-              <option value="확인 필요">확인 필요</option>
-              <option value="수정 필요">수정 필요</option>
-              <option value="수정 완료">수정 완료</option>
-            </select>
-          `;
+          statusTagHtml = `<span class="status-tag status-ok">적합</span>`;
         } else if (result.isDoubleCheck) {
-          // 더블체크 항목은 '확인 필요' 상태로 드롭다운 제공
-          statusColHtml = `
-            <select class="status-select select-need-check" onchange="handleStatusChange(this)">
-              <option value="확인 필요" selected>확인 필요 (더블체크)</option>
-              <option value="확인 완료">확인 완료</option>
-              <option value="수정 필요">수정 필요</option>
-              <option value="수정 완료">수정 완료</option>
-            </select>
-          `;
+          statusTagHtml = `<span class="status-tag status-double">더블체크</span>`;
         } else {
-          // 오류 검출 항목은 기본 '수정 필요' 상태로 드롭다운 제공
-          statusColHtml = `
-            <select class="status-select select-need-fix" onchange="handleStatusChange(this)">
-              <option value="수정 필요" selected>수정 필요</option>
-              <option value="확인 필요">확인 필요</option>
-              <option value="수정 완료">수정 완료</option>
-              <option value="확인 완료">확인 완료</option>
-            </select>
-          `;
+          statusTagHtml = `<span class="status-tag status-fail">수정필요</span>`;
         }
 
         const tr = document.createElement("tr");
@@ -1120,13 +1109,12 @@
             ${issuesHtml}
           </td>
           <td class="td-status">
-            ${statusColHtml}
+            ${statusTagHtml}
           </td>
         `;
         tbody.appendChild(tr);
       });
 
-      // 수치 갱신
       document.getElementById("statTotal").innerHTML = `${total}<span>개</span>`;
       document.getElementById("statPass").innerHTML = `${passCount}<span>개</span>`;
       document.getElementById("statFail").innerHTML = `${failCount}<span>건</span>`;
@@ -1139,7 +1127,7 @@
         alertBadge.textContent = `확인·수정 대상 ${failCount}건`;
         alertBadge.style.color = "#b91c1c";
         alertBadge.style.borderColor = "#ef4444";
-        summaryText.innerHTML = `점검할 항목 <strong>${total}개 중 ${total}개</strong>를 점검 완료하였으며, <strong>수정 및 확인(더블체크) 항목은 총 ${failCount}개</strong>입니다. 각 항목 우측 드롭다운으로 조치 결과를 확정해 주세요.`;
+        summaryText.innerHTML = `점검할 항목 <strong>${total}개 중 ${total}개</strong>를 점검 완료하였으며, <strong>수정 및 확인(더블체크) 항목은 총 ${failCount}개</strong>입니다. 각 검출 줄 우측의 드롭다운을 통해 처리 상태를 개별 지정해 주세요.`;
       } else {
         alertBadge.textContent = `전 항목 적합 통과`;
         alertBadge.style.color = "#047857";
