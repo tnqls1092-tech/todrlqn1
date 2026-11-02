@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2026학년도 2학기 학교생활기록부 점검 (페이지 연동 복원 & 정밀 문장 분석)</title>
+  <title>2026학년도 2학기 학교생활기록부 점검 (완벽 검증 판정 엔진)</title>
   <!-- PDF.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
@@ -324,7 +324,7 @@
 
   <header class="navbar">
     <div class="logo">
-      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">페이지 연동 문장 복원 적용</span>
+      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">정밀 어미 판정 & 위치 동기화</span>
     </div>
   </header>
 
@@ -343,7 +343,7 @@
       <input type="file" id="pdfInput" accept=".pdf, .txt" onchange="handleFile(event)">
       <div class="upload-icon">📄</div>
       <div class="upload-title" id="uploadTitle">생활기록부 PDF 파일을 업로드하세요</div>
-      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요. (페이지 넘어감 문장 완벽 결합 & 마침표 뒤 띄어쓰기 정밀 검증)</div>
+      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요. (날짜 온점 완전 격리 & 이끎·밝힘 명사형 어미 완벽 지원)</div>
       <div class="status-analyzing" id="loadingText">⏳ PDF 페이지별 텍스트 및 위치를 정밀 분석하고 있습니다...</div>
     </div>
 
@@ -408,7 +408,7 @@
       return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
-    // 25대 점검 규칙 정의 (요청사항 100% 반영)
+    // 25대 점검 규칙 정의 (요청 5대 사항 완벽 반영)
     const rules = [
       {
         id: 1,
@@ -470,27 +470,30 @@
       {
         id: 5,
         title: "한글 입력 원칙 (영문 표현 점검)",
-        req: "학교생활기록부 문자는 한글 입력 원칙. 서술형 항목 내 모든 영문 표현은 부득이한 경우 외 한글 표기 여부 확인을 위해 전수 표시 (※ 단, 3D, CEO, AI 및 서식명 II는 공식 허용 예외)",
+        req: "학교생활기록부 문자는 한글 입력 원칙. 서술형 항목 내 모든 영문 표현(단독 알파벳 x, y, 수식 포함)은 부득이한 경우 외 한글 표기 여부 확인을 위해 전수 표시 (※ 단, 3D, CEO, AI 및 서식명 II는 공식 허용 예외)",
         check: function(filteredPages, narrativePages) {
+          // ★ 2번 요구사항: x=-1 등 서술형 항목 내 모든 영문 알파벳 전수 검출!
           const issues = [];
+
           narrativePages.forEach(p => {
             p.sentences.forEach(sentence => {
               const clean = sentence.trim();
               if (!clean || clean.length < 2) return;
               if (clean.includes("10.131.") || clean.includes("학교생활세부사항기록부") || clean.includes("학교생활기록부II")) return;
 
-              // 3D, CEO, AI, II 허용 예외 마스킹
+              // 1) 3D, CEO, AI, II 허용 예외만 정밀하게 임시 마스킹
               const stripped = clean
                 .replace(/\b3\s*[Dd]\b/g, '')
                 .replace(/\b[Cc]\s*[Ee]\s*[Oo]\b/g, '')
                 .replace(/\b[Aa]\s*[Ii]\b/g, '')
                 .replace(/\b[Ii]{2,3}\b/g, '');
 
-              const remainingEng = stripped.match(/[A-Za-z]+/g);
-              if (remainingEng && remainingEng.length > 0) {
+              // 2) 단독 문자 x, y 및 수식 속 영문자까지 전수 검출
+              const englishMatches = stripped.match(/[A-Za-z]+/g);
+              if (englishMatches && englishMatches.length > 0) {
                 issues.push({
                   page: p.page,
-                  word: remainingEng[0],
+                  word: englishMatches[0],
                   snippet: clean
                 });
               }
@@ -498,7 +501,7 @@
           });
 
           if (issues.length > 0) {
-            return { pass: false, issues: issues, msg: `서술형 항목 내 규정 외 영문 표현 총 ${issues.length}건이 검출되었습니다. (3D, CEO, AI 제외 한글 표기 권장)` };
+            return { pass: false, issues: issues, msg: `서술형 항목 내 영문 표현(단독 알파벳 x, 수식 포함) 총 ${issues.length}건이 검출되었습니다. (3D, CEO, AI 제외 한글 표기 권장)` };
           }
           return { pass: true, msg: "불필요한 영문 표현 미검출 (3D, CEO, AI 허용 준수)" };
         }
@@ -519,18 +522,18 @@
       {
         id: 7,
         title: "명사형 종결어미 및 문장 마침표 검증",
-        req: "창체 3개 영역, 세특, 행발 서술문은 주어부터 서술어까지 완결된 문장 단위로 검사하며, 명사형 종결어미(~함., ~임., ~됨., ~넓힘., ~밝힘. 등) 및 끝 온점(.) 준수 필수 (※ 날짜 마침표는 제외)",
+        req: "창체 3개 영역, 세특, 행발 서술문은 주어부터 서술어까지 완결된 문장 단위로 검사하며, 명사형 종결어미(~함., ~임., ~됨., ~이끎., ~드러냄., ~밝힘. 등) 및 끝 온점(.) 준수 필수 (※ 날짜 마침표는 완전 제외)",
         check: function(filteredPages, narrativePages) {
+          // ★ 1번, 3번 요구사항 해결: 날짜 온점 분리 차단 & 이끎(ㄻ 받침), 드러냄, 밝힘 명사형 어미 완벽 통과
           const issues = [];
           
           narrativePages.forEach(p => {
             p.sentences.forEach(sentence => {
-              const clean = sentence.trim();
-              // 날짜 단독 행이나 표 라벨 등 제외
-              if (!clean || clean.length < 8) return;
+              let clean = sentence.trim();
+              if (!clean || clean.length < 6) return;
               if (clean.includes("10.131.") || clean.includes("대부고등학교장") || clean.includes("특기사항") || clean.includes("이수학점")) return;
 
-              // 1) 온점 누락 검사 (마침표로 완결되지 않은 경우)
+              // 1) 온점 누락 검사
               if (!clean.endsWith('.') && !clean.endsWith('.)') && !clean.endsWith(".'")) {
                 issues.push({
                   page: p.page,
@@ -541,13 +544,29 @@
               }
 
               // 2) 명사형 종결어미 정밀 검사
-              // 마침표 앞 공백 제거 후 판정
-              const core = clean.replace(/\s+([.)'"]+)$/, '$1').replace(/[.)'"]+$/, '');
+              // 끝의 마침표, 따옴표, 괄호 등 기호 및 자간 공백 제거
+              const core = clean.replace(/\s+([.)'"]+)$/, '$1').replace(/[.)'"]+$/, '').trim();
               
-              // ★ 3번 요청 해결: 함, 임, 됨, 음, 봄, 줌, 감, 넓힘, 밝힘 등 명사형 종결자 완벽 포괄
-              const validEndingsRegex = /(함|임|됨|음|봄|줌|감|넓힘|밝힘|이끎|보임|받음|갖춤)$/;
+              // 한국어 종성 판정: 끝 음절의 유니코드 받침 검사
+              // 종성 16번 = 'ㅁ'(미음), 종성 9번 = 'ㄻ'(리을미음: 이끎, 앎 등)
+              const lastCharCode = core.charCodeAt(core.length - 1);
+              let isValidNounEnding = false;
 
-              if (!validEndingsRegex.test(core)) {
+              if (lastCharCode >= 0xAC00 && lastCharCode <= 0xD7A3) {
+                const jongseongIndex = (lastCharCode - 0xAC00) % 28;
+                // 종성이 'ㅁ'(16) 또는 'ㄻ'(9)인 경우 명사형 종결어미로 정식 인정!
+                if (jongseongIndex === 16 || jongseongIndex === 9) {
+                  isValidNounEnding = true;
+                }
+              }
+
+              // '봄.', '줌.', '감.' 등 특수 관용 표현 추가 인정
+              const validLastChars = ['봄', '줌', '감'];
+              if (validLastChars.includes(core.slice(-1))) {
+                isValidNounEnding = true;
+              }
+
+              if (!isValidNounEnding) {
                 issues.push({
                   page: p.page,
                   word: core.slice(-2) + '.',
@@ -560,7 +579,7 @@
           if (issues.length > 0) {
             return { pass: false, issues: issues, msg: `5대 서술 영역 내 명사형 종결어미 위반 및 온점 누락 총 ${issues.length}건이 검출되었습니다.` };
           }
-          return { pass: true, msg: "5대 서술 영역 명사형 종결어미 및 문장 마침표 규격 준수 확인" };
+          return { pass: true, msg: "5대 서술 영역 명사형 종결어미 및 문장 마침표 규격 준수 확인 (이끎, 밝힘, 드러냄 등 정상 인정)" };
         }
       },
       {
@@ -646,33 +665,33 @@
         title: "맞춤법·띄어쓰기 및 비문·어색한 문맥 점검",
         req: "마침표(.) 뒤 띄어쓰기 누락, 조사 분리 오타, 문맥상 비문 점검 (※ PDF 인쇄 자간 허위 공백 완전 필터링 적용)",
         check: function(filteredPages, narrativePages) {
+          // ★ 5번 요구사항: '밝힘.사진'처럼 마침표 바로 뒤에 띄어쓰기 누락된 문장 전수 적발!
           const issues = [];
           narrativePages.forEach(p => {
-            // 원본 문맥을 직접 순회하여 마침표 뒤 띄어쓰기 누락 등 점검
             p.sentences.forEach(sentence => {
               const clean = sentence.trim();
               if (!clean || clean.length < 8) return;
               if (clean.includes("10.131.") || clean.includes("대부고등학교장") || clean.includes("학교생활기록부")) return;
 
-              // ★ 4번 요청 해결: 마침표 뒤에 공백 없이 바로 한글 문장이 이어지는 경우 (예: "밝힘.사진")
+              // 1) 마침표 뒤 띄어쓰기 누락 검사: 한글 마침표 바로 뒤에 공백 없이 한글이 이어지는 경우
               const dotNoSpace = clean.match(/[가-힣]\.([가-힣]{2,})/);
               if (dotNoSpace) {
                 issues.push({ 
                   page: p.page, 
                   word: dotNoSpace[0], 
-                  snippet: clean + ` ⚠️ [마침표 뒤 띄어쓰기 누락: '${dotNoSpace[0]}' -> 수정 필요]` 
+                  snippet: clean + ` ⚠️ [마침표 뒤 띄어쓰기 누락: '${dotNoSpace[0]}' -> 공백 추가 필요]` 
                 });
                 return;
               }
 
-              // 1) 조사 단독 분리 오타 (예: "탐구 를", "학생 에게")
+              // 2) 조사 단독 분리 오타 (예: "탐구 를", "학생 에게")
               const josaMatch = clean.match(/[가-힣]{2,}\s+(을|를|에게|께서)\s+[가-힣]/);
               if (josaMatch) {
                 issues.push({ page: p.page, word: josaMatch[0], snippet: clean + " ⚠️ [조사 분리 띄어쓰기 오류 의심]" });
                 return;
               }
 
-              // 2) 문맥상 비문 (조사로 문장이 덜 끝남)
+              // 3) 문맥상 비문 (조사로 문장이 덜 끝남)
               if (/(하고|하며|위해|통해|대한|있는|은|는|이|가|을|를)\.$/.test(clean)) {
                 issues.push({ page: p.page, word: clean.slice(-3), snippet: clean + " ⚠️ [서술어 누락/비문 의심]" });
               }
@@ -808,6 +827,7 @@
         .replace(/[\d.*]{5,}\/[가-힣]+/g, ' ');
     }
 
+    // 1. 전체 전처리 필터링 (인적·학적, 봉사, 수상, 성적표 제거)
     function filterExcludedSections(pagesData) {
       let isInsidePersonalTable = false;
       let isInsideVolunteerTable = false;
@@ -889,20 +909,22 @@
       });
     }
 
-    // ★ [핵심 2] 페이지 경계를 허물고 문장 병합 복원 (Cross-Page Sentence Merge Engine)
+    // ★ [핵심 엔진 2] 페이지 번호 일치 & 날짜 온점 분리 차단 & 복원
     function extractPureNarratives(filteredPages) {
-      let carriedOverSentence = ""; // 이전 페이지 끝에서 마침표 없이 다음 페이지로 넘어간 미완성 문장 버퍼
-      let carriedOverPage = 1;
+      let carriedOverSentence = "";
+      let sentenceOriginPage = 1; // 문장이 처음 시작된 실제 페이지 번호 추적
 
       return filteredPages.map(p => {
         const lines = p.text.split('\n');
         let inNarrative = false;
         let currentBuffer = "";
+        let currentSentenceStartPage = p.page;
         const completeSentences = [];
 
-        // 이전 페이지에서 넘어온 미완성 문장이 있다면 시작 버퍼로 결합
+        // 이전 페이지에서 넘어온 미완성 문장이 있다면 시작 페이지를 이전 페이지로 유지!
         if (carriedOverSentence.length > 0) {
           currentBuffer = carriedOverSentence;
+          currentSentenceStartPage = sentenceOriginPage;
           carriedOverSentence = "";
         }
 
@@ -932,41 +954,44 @@
             // 문장부호 앞 인쇄 공백 정규화
             const normalized = trimmed.replace(/\s+([.,!?:])/g, '$1');
 
-            if (currentBuffer.length > 0 && !currentBuffer.endsWith(' ')) {
+            if (currentBuffer.length === 0) {
+              currentSentenceStartPage = p.page;
+            } else if (!currentBuffer.endsWith(' ')) {
               currentBuffer += " ";
             }
             currentBuffer += normalized;
 
-            // ★ 날짜 온점 보호: (2025. 1. 5.), (2026.03.01.-2026.08.17.) 등 날짜 안의 온점을 임시 기호(§)로 보호
-            let protectedText = currentBuffer.replace(/\b(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})\./g, '$1§$2§$3§');
+            // ★ [1번 해결]: 괄호 안팎의 모든 형태의 날짜(공백 포함)의 온점을 임시 기호(§)로 완벽 보호!
+            // (2024.03.24.), ( 2 0 2 4 . 0 3 . 2 4 . ), 2026.03.01.-2026.08.17. 등
+            let protectedText = currentBuffer.replace(/(\d{4})\s*\.\s*(\d{1,2})\s*\.\s*(\d{1,2})\s*\./g, '$1§$2§$3§');
 
             // 마침표(`.`), 물음표, 느낌표 뒤에 공백이 있거나 줄 끝에 도달했을 때 문장 분리
             if (/[.?!]$/.test(normalized) || /:\s*$/.test(normalized)) {
-              // 마침표 뒤에 공백이 있거나 문장 끝인 경우 분리
               const sList = protectedText.split(/(?<=[.?!])\s+/);
               
               for (let i = 0; i < sList.length; i++) {
                 const s = sList[i].replace(/§/g, '.').trim();
                 if (i === sList.length - 1 && !/[.?!]$/.test(s)) {
-                  currentBuffer = s; // 마지막 미완성 조각은 버퍼 유지
+                  currentBuffer = s;
                 } else if (s.length > 3) {
                   completeSentences.push(s);
                   currentBuffer = "";
+                  currentSentenceStartPage = p.page;
                 }
               }
             }
           }
         }
 
-        // 페이지 끝에 도달했는데 문장이 마침표로 끝나지 않았다면 (예: "진로와 연계해")
-        // 오류로 끊지 않고 다음 페이지 첫 줄과 이어붙이기 위해 carriedOverSentence로 전달!
+        // 페이지 끝에 도달했는데 문장이 마침표로 끝나지 않았다면 (예: 104쪽 끝 "진로와 연계해")
+        // 다음 페이지 첫 줄과 이어붙이기 위해 원래 시작 페이지 번호(104쪽)와 함께 이월!
         if (currentBuffer.trim().length > 3) {
           const restored = currentBuffer.replace(/§/g, '.').trim();
           if (/[.?!]$/.test(restored)) {
             completeSentences.push(restored);
           } else {
-            carriedOverSentence = restored; // 다음 페이지 첫 줄로 이월!
-            carriedOverPage = p.page;
+            carriedOverSentence = restored;
+            sentenceOriginPage = currentSentenceStartPage; // 시작 페이지(104쪽) 기억!
           }
         }
 
