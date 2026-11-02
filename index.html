@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2026학년도 2학기 학교생활기록부 점검 (완벽 문장 복원 & 오탐지 제거)</title>
+  <title>2026학년도 2학기 학교생활기록부 점검 (페이지 연동 복원 & 정밀 문장 분석)</title>
   <!-- PDF.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
@@ -324,7 +324,7 @@
 
   <header class="navbar">
     <div class="logo">
-      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">3D·CEO·AI & 문장 완결 보장</span>
+      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">페이지 연동 문장 복원 적용</span>
     </div>
   </header>
 
@@ -343,7 +343,7 @@
       <input type="file" id="pdfInput" accept=".pdf, .txt" onchange="handleFile(event)">
       <div class="upload-icon">📄</div>
       <div class="upload-title" id="uploadTitle">생활기록부 PDF 파일을 업로드하세요</div>
-      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요. (3D, CEO, AI 자동 허용 및 날짜 마침표 보호 적용)</div>
+      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요. (페이지 넘어감 문장 완벽 결합 & 마침표 뒤 띄어쓰기 정밀 검증)</div>
       <div class="status-analyzing" id="loadingText">⏳ PDF 페이지별 텍스트 및 위치를 정밀 분석하고 있습니다...</div>
     </div>
 
@@ -408,7 +408,7 @@
       return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
-    // 25대 점검 규칙 정의 (요청 6가지 전면 반영)
+    // 25대 점검 규칙 정의 (요청사항 100% 반영)
     const rules = [
       {
         id: 1,
@@ -472,23 +472,20 @@
         title: "한글 입력 원칙 (영문 표현 점검)",
         req: "학교생활기록부 문자는 한글 입력 원칙. 서술형 항목 내 모든 영문 표현은 부득이한 경우 외 한글 표기 여부 확인을 위해 전수 표시 (※ 단, 3D, CEO, AI 및 서식명 II는 공식 허용 예외)",
         check: function(filteredPages, narrativePages) {
-          // ★ 1, 2, 3번 완벽 해결: 3D, CEO, AI, II 허용 예외 완전 정밀 필터링!
           const issues = [];
-
           narrativePages.forEach(p => {
             p.sentences.forEach(sentence => {
               const clean = sentence.trim();
               if (!clean || clean.length < 2) return;
               if (clean.includes("10.131.") || clean.includes("학교생활세부사항기록부") || clean.includes("학교생활기록부II")) return;
 
-              // 1) 문맥 속의 3D, CEO, AI, II를 임시로 안전하게 마스킹 제거
+              // 3D, CEO, AI, II 허용 예외 마스킹
               const stripped = clean
-                .replace(/\b3\s*[Dd]\b/g, '')     // 3D, 3 D 제거
-                .replace(/\b[Cc]\s*[Ee]\s*[Oo]\b/g, '') // CEO, C E O 제거
-                .replace(/\b[Aa]\s*[Ii]\b/g, '')       // AI, A I 제거
-                .replace(/\b[Ii]{2,3}\b/g, '');        // II, III 제거
+                .replace(/\b3\s*[Dd]\b/g, '')
+                .replace(/\b[Cc]\s*[Ee]\s*[Oo]\b/g, '')
+                .replace(/\b[Aa]\s*[Ii]\b/g, '')
+                .replace(/\b[Ii]{2,3}\b/g, '');
 
-              // 2) 마스킹 후에도 남아있는 진짜 규정 외 영문자(단독 x, y 포함) 검색
               const remainingEng = stripped.match(/[A-Za-z]+/g);
               if (remainingEng && remainingEng.length > 0) {
                 issues.push({
@@ -522,18 +519,18 @@
       {
         id: 7,
         title: "명사형 종결어미 및 문장 마침표 검증",
-        req: "창체 3개 영역, 세특, 행발 서술문은 완결된 문장 단위로 검사하며, 명사형 종결어미(~함., ~임., ~됨., ~밝힘. 등) 및 끝 온점(.) 준수 필수 (※ 괄호 날짜는 제외)",
+        req: "창체 3개 영역, 세특, 행발 서술문은 주어부터 서술어까지 완결된 문장 단위로 검사하며, 명사형 종결어미(~함., ~임., ~됨., ~넓힘., ~밝힘. 등) 및 끝 온점(.) 준수 필수 (※ 날짜 마침표는 제외)",
         check: function(filteredPages, narrativePages) {
-          // ★ 4, 5, 6번 완벽 해결: 날짜 마침표에 끊기지 않고, '밝힘.', '받음.' 등 음/함/임/됨 완결 문장 정상 판정!
           const issues = [];
           
           narrativePages.forEach(p => {
             p.sentences.forEach(sentence => {
               const clean = sentence.trim();
+              // 날짜 단독 행이나 표 라벨 등 제외
               if (!clean || clean.length < 8) return;
               if (clean.includes("10.131.") || clean.includes("대부고등학교장") || clean.includes("특기사항") || clean.includes("이수학점")) return;
 
-              // 1) 온점 누락 검사
+              // 1) 온점 누락 검사 (마침표로 완결되지 않은 경우)
               if (!clean.endsWith('.') && !clean.endsWith('.)') && !clean.endsWith(".'")) {
                 issues.push({
                   page: p.page,
@@ -544,13 +541,13 @@
               }
 
               // 2) 명사형 종결어미 정밀 검사
-              // 마침표 앞 공백 제거 후 판정 ("밝힘 ." -> "밝힘.")
+              // 마침표 앞 공백 제거 후 판정
               const core = clean.replace(/\s+([.)'"]+)$/, '$1').replace(/[.)'"]+$/, '');
-              // 함, 임, 됨, 음(밝힘, 받음, 이끎, 보임 등), 봄, 줌, 감 등 명사형 종결자 허용
-              const lastChar = core.slice(-1);
-              const validLastChars = ['함', '임', '됨', '음', '봄', '줌', '감'];
+              
+              // ★ 3번 요청 해결: 함, 임, 됨, 음, 봄, 줌, 감, 넓힘, 밝힘 등 명사형 종결자 완벽 포괄
+              const validEndingsRegex = /(함|임|됨|음|봄|줌|감|넓힘|밝힘|이끎|보임|받음|갖춤)$/;
 
-              if (!validLastChars.includes(lastChar)) {
+              if (!validEndingsRegex.test(core)) {
                 issues.push({
                   page: p.page,
                   word: core.slice(-2) + '.',
@@ -647,16 +644,28 @@
       {
         id: 15,
         title: "맞춤법·띄어쓰기 및 비문·어색한 문맥 점검",
-        req: "명백한 조사 분리 오타, 문맥상 비문 점검 (※ PDF 인쇄 자간 허위 공백 완전 필터링 적용)",
+        req: "마침표(.) 뒤 띄어쓰기 누락, 조사 분리 오타, 문맥상 비문 점검 (※ PDF 인쇄 자간 허위 공백 완전 필터링 적용)",
         check: function(filteredPages, narrativePages) {
           const issues = [];
           narrativePages.forEach(p => {
+            // 원본 문맥을 직접 순회하여 마침표 뒤 띄어쓰기 누락 등 점검
             p.sentences.forEach(sentence => {
               const clean = sentence.trim();
-              if (!clean || clean.length < 10) return;
+              if (!clean || clean.length < 8) return;
               if (clean.includes("10.131.") || clean.includes("대부고등학교장") || clean.includes("학교생활기록부")) return;
 
-              // 1) 조사 단독 분리 오타
+              // ★ 4번 요청 해결: 마침표 뒤에 공백 없이 바로 한글 문장이 이어지는 경우 (예: "밝힘.사진")
+              const dotNoSpace = clean.match(/[가-힣]\.([가-힣]{2,})/);
+              if (dotNoSpace) {
+                issues.push({ 
+                  page: p.page, 
+                  word: dotNoSpace[0], 
+                  snippet: clean + ` ⚠️ [마침표 뒤 띄어쓰기 누락: '${dotNoSpace[0]}' -> 수정 필요]` 
+                });
+                return;
+              }
+
+              // 1) 조사 단독 분리 오타 (예: "탐구 를", "학생 에게")
               const josaMatch = clean.match(/[가-힣]{2,}\s+(을|를|에게|께서)\s+[가-힣]/);
               if (josaMatch) {
                 issues.push({ page: p.page, word: josaMatch[0], snippet: clean + " ⚠️ [조사 분리 띄어쓰기 오류 의심]" });
@@ -671,7 +680,7 @@
           });
 
           if (issues.length > 0) {
-            return { pass: false, issues: issues, msg: `맞춤법·띄어쓰기 및 비문 총 ${issues.length}건이 검출되었습니다.` };
+            return { pass: false, issues: issues, msg: `맞춤법·띄어쓰기(마침표 뒤 공백 누락 등) 총 ${issues.length}건이 검출되었습니다.` };
           }
           return { pass: true, msg: "5대 서술 영역 맞춤법 및 문맥 호응 양호" };
         }
@@ -799,7 +808,6 @@
         .replace(/[\d.*]{5,}\/[가-힣]+/g, ' ');
     }
 
-    // 1. 전체 전처리 필터링 (인적·학적, 봉사, 수상, 성적표 제거)
     function filterExcludedSections(pagesData) {
       let isInsidePersonalTable = false;
       let isInsideVolunteerTable = false;
@@ -881,13 +889,22 @@
       });
     }
 
-    // ★ 2. [핵심 알고리즘 전면 개편] 줄바꿈 병합 복원 + 날짜 온점 보호 + 마침표 앞 공백 완벽 정규화
+    // ★ [핵심 2] 페이지 경계를 허물고 문장 병합 복원 (Cross-Page Sentence Merge Engine)
     function extractPureNarratives(filteredPages) {
+      let carriedOverSentence = ""; // 이전 페이지 끝에서 마침표 없이 다음 페이지로 넘어간 미완성 문장 버퍼
+      let carriedOverPage = 1;
+
       return filteredPages.map(p => {
         const lines = p.text.split('\n');
-        let currentParagraph = "";
         let inNarrative = false;
+        let currentBuffer = "";
         const completeSentences = [];
+
+        // 이전 페이지에서 넘어온 미완성 문장이 있다면 시작 버퍼로 결합
+        if (carriedOverSentence.length > 0) {
+          currentBuffer = carriedOverSentence;
+          carriedOverSentence = "";
+        }
 
         for (let line of lines) {
           const trimmed = line.trim();
@@ -912,39 +929,45 @@
           }
 
           if (inNarrative) {
-            // 문장부호 바로 앞 공백 자동 정규화 ("함 ." -> "함.")
-            let normalized = trimmed.replace(/\s+([.,!?:])/g, '$1');
+            // 문장부호 앞 인쇄 공백 정규화
+            const normalized = trimmed.replace(/\s+([.,!?:])/g, '$1');
 
-            // 쪼개진 줄바꿈을 공백 하나로 이어붙임
-            if (currentParagraph.length > 0 && !currentParagraph.endsWith(' ')) {
-              currentParagraph += " ";
+            if (currentBuffer.length > 0 && !currentBuffer.endsWith(' ')) {
+              currentBuffer += " ";
             }
-            currentParagraph += normalized;
+            currentBuffer += normalized;
 
-            // 괄호 안의 날짜 온점 임시 보호 ((2024.04.08.-2024.06.28./15회) 등의 온점이 문장을 쪼개지 못하게 방지)
-            let protectedText = currentParagraph.replace(/\((\s*\d{4})\.(\d{1,2})\.(\d{1,2})\.([^)]*)\)/g, '($1§$2§$3§$4)');
+            // ★ 날짜 온점 보호: (2025. 1. 5.), (2026.03.01.-2026.08.17.) 등 날짜 안의 온점을 임시 기호(§)로 보호
+            let protectedText = currentBuffer.replace(/\b(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})\./g, '$1§$2§$3§');
 
-            // 진짜 문장 종결 마침표(`.`, `?`, `!`)를 만났을 때만 문장 분리
+            // 마침표(`.`), 물음표, 느낌표 뒤에 공백이 있거나 줄 끝에 도달했을 때 문장 분리
             if (/[.?!]$/.test(normalized) || /:\s*$/.test(normalized)) {
+              // 마침표 뒤에 공백이 있거나 문장 끝인 경우 분리
               const sList = protectedText.split(/(?<=[.?!])\s+/);
               
-              // 분리된 문장들 중 마지막 조각이 마침표로 끝나지 않았다면 다음 줄을 위해 버퍼에 보존
               for (let i = 0; i < sList.length; i++) {
                 const s = sList[i].replace(/§/g, '.').trim();
                 if (i === sList.length - 1 && !/[.?!]$/.test(s)) {
-                  currentParagraph = s;
+                  currentBuffer = s; // 마지막 미완성 조각은 버퍼 유지
                 } else if (s.length > 3) {
                   completeSentences.push(s);
-                  currentParagraph = "";
+                  currentBuffer = "";
                 }
               }
             }
           }
         }
 
-        // 잔여 버퍼 처리
-        if (currentParagraph.trim().length > 3) {
-          completeSentences.push(currentParagraph.replace(/§/g, '.').trim());
+        // 페이지 끝에 도달했는데 문장이 마침표로 끝나지 않았다면 (예: "진로와 연계해")
+        // 오류로 끊지 않고 다음 페이지 첫 줄과 이어붙이기 위해 carriedOverSentence로 전달!
+        if (currentBuffer.trim().length > 3) {
+          const restored = currentBuffer.replace(/§/g, '.').trim();
+          if (/[.?!]$/.test(restored)) {
+            completeSentences.push(restored);
+          } else {
+            carriedOverSentence = restored; // 다음 페이지 첫 줄로 이월!
+            carriedOverPage = p.page;
+          }
         }
 
         return {
