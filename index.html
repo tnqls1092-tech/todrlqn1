@@ -487,11 +487,25 @@
   </main>
 
   <script>
+    // =========================================================
+    // ★ [핵심 헬퍼 함수 최상단 선언] 호이스팅 및 Not Defined 에러 원천 방지
+    // =========================================================
+
     function escapeRegExp(string) {
       return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
-    // ★ [오류 해결] 누락되었던 핵심 키워드 탐색 함수 선언
+    // 나이스 워터마크 정제 함수
+    function cleanNICEWatermarks(text) {
+      if (!text) return "";
+      return text
+        .replace(/[대\s*부\s*고\s*등\s*학\s*교]*\s*\/\s*\d{4}\.\d{1,2}\.\d{1,2}[^/\n]*\/[\d.*]+\/[가-힣\w\s]+/g, ' ')
+        .replace(/[대\s*부\s*고\s*등\s*학\s*교]*\s*\d{4}년\s*\d{1,2}월\s*\d{1,2}일\s*\d+\s*\/\s*\d+\s*반\s*\d+\s*번\s*호\s*\d+\s*성\s*명\s*[가-힣a-zA-Z\s]+/g, ' ')
+        .replace(/반\s*\d+\s*번\s*호\s*\d+\s*성\s*명\s*[가-힣a-zA-Z\s]+/g, ' ')
+        .replace(/[\d.*]{5,}\/[가-힣]+/g, ' ');
+    }
+
+    // 키워드 탐색 함수
     function findKeywordLocations(narrativePages, targets, strictWords = []) {
       const results = [];
       narrativePages.forEach(p => {
@@ -1332,7 +1346,6 @@
         tbody.appendChild(tr);
       });
 
-      // 수치 카드 갱신
       document.getElementById("statTotal").innerHTML = `${total}<span>개</span>`;
       document.getElementById("statPass").innerHTML = `${cachedFilteredPages ? passCount : 0}<span>개</span>`;
       document.getElementById("statFail").innerHTML = `${cachedFilteredPages ? failCount : 0}<span>건</span>`;
