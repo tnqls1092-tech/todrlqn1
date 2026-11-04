@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2026학년도 2학기 학교생활기록부 점검 (출결·자율동아리 정밀 발췌)</title>
+  <title>2026학년도 2학기 학교생활기록부 점검 (괄호 날짜 완전 보호 & 문장 복원)</title>
   <!-- PDF.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
@@ -66,7 +66,7 @@
     }
 
     .container {
-      max-width: 1240px;
+      max-width: 1220px;
       margin: 24px auto 80px;
       padding: 0 20px;
       display: flex;
@@ -214,8 +214,8 @@
       font-weight: 600;
     }
     .td-num { width: 45px; text-align: center; color: var(--text-muted); font-weight: 700; }
-    .td-name { width: 250px; font-weight: 600; color: #1e293b; }
-    .td-status { width: 110px; text-align: center; }
+    .td-name { width: 240px; font-weight: 600; color: #1e293b; }
+    .td-status { width: 100px; text-align: center; }
 
     .status-tag {
       display: inline-block;
@@ -281,7 +281,6 @@
       color: #1e40af;
     }
 
-    /* 드롭다운 스타일 */
     .item-select {
       width: 105px;
       padding: 4px 6px;
@@ -336,7 +335,7 @@
 
   <header class="navbar">
     <div class="logo">
-      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">출결·자율동아리 개별 추적</span>
+      <span>📑</span> 2026 학생부 정밀 점검 <span class="badge-status-feature">괄호 날짜 온점 완전 보호</span>
     </div>
   </header>
 
@@ -355,7 +354,7 @@
       <input type="file" id="pdfInput" accept=".pdf, .txt" onchange="handleFile(event)">
       <div class="upload-icon">📄</div>
       <div class="upload-title" id="uploadTitle">생활기록부 PDF 파일을 업로드하세요</div>
-      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요. (출결상황 학생별 전수 발췌 및 자율동아리 양식 정밀 검증)</div>
+      <div class="upload-desc" id="uploadDesc">클릭하거나 PDF 파일을 이곳에 끌어다 놓으세요. (괄호 날짜 마침표 분리 원천 차단 & 임기 기간 전체 출력)</div>
       <div class="status-analyzing" id="loadingText">⏳ PDF 페이지별 텍스트 및 위치를 정밀 분석하고 있습니다...</div>
     </div>
 
@@ -402,7 +401,7 @@
             <tr>
               <th class="td-num">번호</th>
               <th class="td-name">검토 항목</th>
-              <th>검증 기준 및 실제 검출 내용 (개별 조치 드롭다운 제공)</th>
+              <th>검증 기준 및 실제 검출 내용 (문장 전체 표기)</th>
               <th class="td-status">판정</th>
             </tr>
           </thead>
@@ -420,7 +419,7 @@
       return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
-    // 25대 점검 규칙 정의 (요청사항 1, 2, 3번 완벽 반영)
+    // 25대 점검 규칙 정의
     const rules = [
       {
         id: 1,
@@ -498,11 +497,11 @@
                 .replace(/\b[Aa]\s*[Ii]\b/g, '')
                 .replace(/\b[Ii]{2,3}\b/g, '');
 
-              const remainingEng = stripped.match(/[A-Za-z]+/g);
-              if (remainingEng && remainingEng.length > 0) {
+              const englishMatches = stripped.match(/[A-Za-z]+/g);
+              if (englishMatches && englishMatches.length > 0) {
                 issues.push({
                   page: p.page,
-                  word: remainingEng[0],
+                  word: englishMatches[0],
                   snippet: clean
                 });
               }
@@ -510,7 +509,7 @@
           });
 
           if (issues.length > 0) {
-            return { pass: false, issues: issues, msg: `서술형 항목 내 규정 외 영문 표현 총 ${issues.length}건이 검출되었습니다. (3D, CEO, AI 제외 한글 표기 권장)` };
+            return { pass: false, issues: issues, msg: `서술형 항목 내 영문 표현(단독 알파벳 x, 수식 포함) 총 ${issues.length}건이 검출되었습니다. (3D, CEO, AI 제외 한글 표기 권장)` };
           }
           return { pass: true, msg: "불필요한 영문 표현 미검출 (3D, CEO, AI 허용 준수)" };
         }
@@ -531,16 +530,18 @@
       {
         id: 7,
         title: "명사형 종결어미 및 문장 마침표 검증",
-        req: "창체 3개 영역, 세특, 행발 서술문은 주어부터 서술어까지 완결된 문장 단위로 검사하며, 명사형 종결어미(~함., ~임., ~됨., ~이끎., ~밝힘. 등) 및 끝 온점(.) 준수 필수 (※ 날짜 마침표는 완전 제외)",
+        req: "창체 3개 영역, 세특, 행발 서술문은 주어부터 서술어까지 완결된 문장 단위로 검사하며, 명사형 종결어미(~함., ~임., ~됨., ~이끎., ~밝힘. 등) 및 끝 온점(.) 준수 필수 (※ 괄호 안 날짜는 문장 분리에서 완전 제외)",
         check: function(filteredPages, narrativePages, fullPages) {
+          // ★ 괄호 날짜 마침표에 의한 문장 분리 차단 & 이끎(ㄻ), 밝힘, 드러냄 등 명사형 종결어미 정상 판정!
           const issues = [];
+          
           narrativePages.forEach(p => {
             p.sentences.forEach(sentence => {
               let clean = sentence.trim();
               if (!clean || clean.length < 6) return;
               if (clean.includes("10.131.") || clean.includes("대부고등학교장") || clean.includes("특기사항") || clean.includes("이수학점")) return;
 
-              // 온점 누락 검사
+              // 1) 온점 누락 검사
               if (!clean.endsWith('.') && !clean.endsWith('.)') && !clean.endsWith(".'")) {
                 issues.push({
                   page: p.page,
@@ -550,7 +551,7 @@
                 return;
               }
 
-              // 명사형 종결어미 정밀 검사
+              // 2) 명사형 종결어미 정밀 검사
               const core = clean.replace(/\s+([.)'"]+)$/, '$1').replace(/[.)'"]+$/, '').trim();
               const lastCharCode = core.charCodeAt(core.length - 1);
               let isValidNounEnding = false;
@@ -581,7 +582,7 @@
           if (issues.length > 0) {
             return { pass: false, issues: issues, msg: `5대 서술 영역 내 명사형 종결어미 위반 및 온점 누락 총 ${issues.length}건이 검출되었습니다.` };
           }
-          return { pass: true, msg: "5대 서술 영역 명사형 종결어미 및 문장 마침표 규격 준수 확인" };
+          return { pass: true, msg: "5대 서술 영역 명사형 종결어미 및 문장 마침표 규격 준수 확인 (이끎, 밝힘, 드러냄 등 정상 인정)" };
         }
       },
       {
@@ -591,7 +592,6 @@
         check: function() { return { pass: true, msg: "학적 변동자 사유 코드 등록 여부 이상 없음" }; }
       },
       {
-        // ★ 1번 요청 반영: 기타결석 1일 이상 학생 이름 & 출결 특기사항 발췌
         id: 9,
         title: "기타결석 사유 기재 여부 (학생별 발췌)",
         req: "출결상황 표에서 기타결석이 1일 이상 발생한 학생의 이름과 출결 특기사항을 발췌하여 사유의 정당성 확인 (개별 드롭다운 제공)",
@@ -602,7 +602,6 @@
             const lines = p.text.split('\n');
             let studentName = "학생";
 
-            // 학생 이름 파악
             for (let line of lines) {
               const nameMatch = line.match(/성\s*명\s*[:\s]*([가-힣]{2,4})/);
               if (nameMatch) {
@@ -614,9 +613,7 @@
               const line = lines[i].trim();
               const compact = line.replace(/\s+/g, '');
 
-              // 출결 표에서 '기타' 결석란 확인
               if (compact.includes("기타") && (compact.includes("결석") || /\b[1-9]\d*일?\b/.test(line))) {
-                // 특기사항 행 찾기
                 let reason = "특기사항 미기재 또는 확인 필요";
                 for (let j = i; j < Math.min(lines.length, i + 8); j++) {
                   if (lines[j].includes("특기사항") || lines[j].includes("사유")) {
@@ -648,7 +645,6 @@
         }
       },
       {
-        // ★ 2번 요청 반영: 한 학년 결석 7일 이상 학생 이름 발췌
         id: 10,
         title: "한 학년 결석 7일 이상 학생 사유·일수 검증",
         req: "출결상황 표에서 한 학년 동안 결석이 7일 이상인 학생의 이름을 발췌하여 출결 특기사항에 연속 결석 사유 및 일수(예: 다리수술(10일))가 올바르게 기재되었는지 확인",
@@ -668,7 +664,6 @@
 
             for (let i = 0; i < lines.length; i++) {
               const line = lines[i].trim();
-              // 7일 이상 결석 숫자 탐색 (예: "7일", "10일" 또는 출결 표 행의 합산 일수 7 이상)
               const daysMatch = line.match(/\b([7-9]|\d{2,})일?\b/);
 
               if (daysMatch && (line.includes("결석") || line.includes("질병") || line.includes("미인정"))) {
@@ -726,6 +721,7 @@
         title: "[더블체크] 학급·전교 자치회 임원 종류 및 재임기간",
         req: "학급자치회(회장 1명, 부회장 1명) 및 전교자치회 임원 종류와 재임기간(1·2학년: 3월 1일~학년말, 3학년: 3월 1일~졸업일) 정확성 더블체크 (년, 월, 일 전체 기간 표기)",
         check: function(filteredPages, narrativePages, fullPages) {
+          // ★ 괄호 안 온점이 안전하게 보호되어 임원 명칭 및 시작일~종료일(년/월/일) 전체가 온전히 노출!
           const issues = [];
           narrativePages.forEach(p => {
             p.sentences.forEach(sentence => {
@@ -738,7 +734,7 @@
                   issues.push({
                     page: p.page,
                     word: matchWord ? matchWord[0] : "자치회",
-                    snippet: clean // 날짜 온점 보호 덕분에 년/월/일 임기 전체가 문장 전체와 함께 온전히 노출!
+                    snippet: clean // 시작일~종료일 전체가 포함된 문장 전체
                   });
                 }
               }
@@ -806,7 +802,6 @@
         }
       },
       {
-        // ★ 3번 요청 반영: 자율동아리 기재 내용 발췌 및 '동아리명(소개)' 규격 검증
         id: 16,
         title: "자율동아리 기재 제한 및 양식 검증",
         req: "학년당 1개에 한해 '동아리명(동아리 소개 30자 이내)' 형식(예: 엑시트(밴드동아리))으로 기재 준수 여부 발췌 검증 (개별 드롭다운 제공)",
@@ -817,7 +812,6 @@
             p.sentences.forEach(sentence => {
               const clean = sentence.trim();
               if (clean.includes("자율동아리") || clean.includes("자율 동아리")) {
-                // 괄호 포함 양식 확인: 동아리명(소개)
                 const isValidFormat = /[가-힣0-9a-zA-Z\s]+\([가-힣0-9a-zA-Z\s]+\)/.test(clean);
 
                 issues.push({
@@ -853,7 +847,6 @@
         check: function() { return { pass: true, msg: "전원 희망분야 또는 '진로탐색 중임' 입력 완료" }; }
       },
       {
-        // ★ 4번 요청 반영: 순회교육 사유 발췌 더블체크
         id: 19,
         title: "과목별 세특 전 학생 입력 (순회교육 사유 더블체크)",
         req: "모든 교과의 모든 학생을 대상으로 세특 입력 완료 여부 점검. '순회교육으로 특이사항 없음' 등 미기재 정당 사유 기재 건은 확인을 위해 더블체크 표시",
@@ -949,21 +942,21 @@
               const clean = sentence.trim();
               if (!clean) return;
 
-              // 1) 온점 2개 연속 오류
+              // 온점 2개 연속 오류
               const doubleDot = clean.match(/\b\d{4}\.\.\d{1,2}\.\d{1,2}\.?/);
               if (doubleDot) {
                 issues.push({ page: p.page, word: doubleDot[0], snippet: clean + " ⚠️ [날짜 온점 2개(..) 오류]" });
                 return;
               }
 
-              // 2) 날짜 내 공백 오류
+              // 날짜 내 공백 오류
               const spaceDate = clean.match(/\b\d{4}\.\s+\d{1,2}\.|\b\d{4}\.\d{1,2}\.\s+\d{1,2}\./);
               if (spaceDate) {
                 issues.push({ page: p.page, word: spaceDate[0], snippet: clean + " ⚠️ [날짜 내 비정상 공백 오류]" });
                 return;
               }
 
-              // 3) 끝 온점 누락 오류
+              // 끝 온점 누락 오류
               const missingEndDot = clean.match(/\b(\d{4}\.\d{1,2}\.\d{1,2})(?!\.)/);
               if (missingEndDot) {
                 issues.push({ page: p.page, word: missingEndDot[0], snippet: clean + " ⚠️ [날짜 끝 온점(.) 누락 오류]" });
@@ -987,7 +980,6 @@
         .replace(/[\d.*]{5,}\/[가-힣]+/g, ' ');
     }
 
-    // 전체 전처리 필터링
     function filterExcludedSections(pagesData) {
       let isInsidePersonalTable = false;
       let isInsideVolunteerTable = false;
@@ -1069,7 +1061,7 @@
       });
     }
 
-    // ★ [핵심] 날짜 괄호 안팎 온점 분리 원천 차단 & Cross-Page 정확한 페이지 매핑 엔진
+    // ★ [100% 오탐지 차단 핵심 엔진]: 소괄호 안의 모든 온점을 기계적으로 완전 보호!
     function extractPureNarratives(filteredPages) {
       let carriedOverSentence = "";
       let sentenceOriginPage = 1;
@@ -1110,7 +1102,6 @@
           }
 
           if (inNarrative) {
-            // 문장부호 앞 공백 제거
             const normalized = trimmed.replace(/\s+([.,!?:])/g, '$1');
 
             if (currentBuffer.length === 0) {
@@ -1120,10 +1111,11 @@
             }
             currentBuffer += normalized;
 
-            // ★ [1번 해결의 핵심]: ( 2 0 2 4 . 0 3 . 2 4 . ) 등 모든 날짜 안팎의 마침표를 임시 안전 기호(§)로 보호
-            let protectedText = currentBuffer
-              .replace(/(\d{4})\s*\.\s*(\d{1,2})\s*\.\s*(\d{1,2})\s*\./g, '$1§$2§$3§')
-              .replace(/(\d{4})\s*\.\s*(\d{1,2})\s*\.\s*(\d{1,2})/g, '$1§$2§$3');
+            // ★★★ [가장 중요한 치환]: 소괄호 `(...)` 안에 들어 있는 모든 온점(.)을 안전 기호(§)로 100% 일괄 보호!
+            // 나이스의 (2024.03.24.), ( 2 0 2 4 . 0 3 . 2 4 . ), (2026.03.01.-2026.08.17.) 등이 마침표로 끊기는 현상을 원천 방지합니다.
+            let protectedText = currentBuffer.replace(/\(([^)]+)\)/g, function(match, innerContent) {
+              return '(' + innerContent.replace(/\./g, '§') + ')';
+            });
 
             // 마침표(`.`), 물음표, 느낌표 뒤에 공백이 있거나 줄 끝에 도달했을 때만 분리
             if (/[.?!]$/.test(normalized) || /:\s*$/.test(normalized)) {
